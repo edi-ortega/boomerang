@@ -160,9 +160,6 @@ export default function ProjectGanttV2() {
   const [progressTask, setProgressTask] = useState<Task | null>(null);
   const [progressStartValue, setProgressStartValue] = useState(0);
 
-  // Estado para debug
-  const [debugInfo, setDebugInfo] = useState<any>(null);
-  
   // Estados para drag na lista de tarefas
   const [draggedTaskId, setDraggedTaskId] = useState<string | null>(null);
   const [dragOverTaskId, setDragOverTaskId] = useState<string | null>(null);
@@ -357,13 +354,6 @@ export default function ProjectGanttV2() {
   const reloadTasks = async () => {
     try {
       const allTasks = await base44.entities.Task.filter({ project_id: projectId, client_id: tenantId });
-      console.log('🔄 Reloaded tasks:', allTasks?.slice(0, 3).map(t => ({ 
-        id: t.id, 
-        title: t.title, 
-        progress: t.progress, 
-        status: t.status 
-      })));
-      
       const hierarchicalTasks = buildTaskHierarchy(allTasks || []);
       setTasks(hierarchicalTasks);
 
@@ -423,7 +413,6 @@ export default function ProjectGanttV2() {
       
       // Aplicar correções se necessário
       if (updates.length > 0) {
-        console.log(`🔧 Fixing ${updates.length} task orderings`);
         for (const update of updates) {
           await (supabase as any)
             .from('prj_task')
@@ -576,13 +565,6 @@ export default function ProjectGanttV2() {
         client_id: tenantId,
       };
 
-      console.log('💾 Saving task with data:', { 
-        id: editingTask?.id, 
-        progress: taskForm.progress,
-        oldProgress: editingTask?.progress,
-        willLetTriggerHandleStatus: true
-      });
-
       // Verificar se as datas foram realmente alteradas
       const datesChanged = editingTask && (
         (editingTask.start_date || '') !== (taskForm.start_date || '') || 
@@ -590,16 +572,6 @@ export default function ProjectGanttV2() {
       );
       
       const shouldReorder = !editingTask || datesChanged;
-
-      console.log('🔄 Reorder check:', { 
-        isNewTask: !editingTask, 
-        datesChanged, 
-        shouldReorder,
-        oldStart: editingTask?.start_date,
-        newStart: taskForm.start_date,
-        oldDue: editingTask?.due_date,
-        newDue: taskForm.due_date
-      });
 
       if (editingTask) {
         // Agora enviamos o status junto, pois a lógica está no frontend
@@ -612,8 +584,7 @@ export default function ProjectGanttV2() {
           .single();
           
         if (error) throw error;
-        
-        console.log('📥 Task updated in DB:', data);
+
         toast.success("Tarefa atualizada");
       } else {
         // Na criação, incluir o status inicial
@@ -633,13 +604,8 @@ export default function ProjectGanttV2() {
       
       // Reordenar tarefas APENAS se for nova tarefa OU se as datas foram alteradas
       if (shouldReorder) {
-        console.log('🔄 Reordering tasks due to date changes');
         await reorderTasksByDate();
-      } else {
-        console.log('⏭️ Skipping reorder - only progress/status changed');
       }
-      
-      console.log('✅ Task saved and reloaded');
     } catch (error) {
       console.error("Error saving task:", error);
       toast.error("Erro ao salvar tarefa");
@@ -703,8 +669,7 @@ export default function ProjectGanttV2() {
             .eq('id', update.id)
             .eq('client_id', tenantId);
         }
-        
-        console.log(`🔄 Reordered ${updates.length} tasks by date`);
+
         await reloadTasks();
       }
     } catch (error) {
@@ -752,13 +717,11 @@ export default function ProjectGanttV2() {
     const taskIndex = Math.floor((y - GANTT_CONFIG.headerHeight) / GANTT_CONFIG.rowHeight);
 
     if (taskIndex < 0 || taskIndex >= visibleTasks.length) {
-      console.log('❌ taskIndex fora dos limites:', taskIndex, 'total visible:', visibleTasks.length);
       return null;
     }
 
     const task = visibleTasks[taskIndex];
     if (!task.start || !task.finish) {
-      console.log('❌ Task sem datas:', task.title);
       return null;
     }
 
@@ -768,22 +731,6 @@ export default function ProjectGanttV2() {
     const barX = taskStartDays * GANTT_CONFIG.dayWidth + 8;
     const barWidth = taskDurationDays * GANTT_CONFIG.dayWidth - 16;
     const barY = GANTT_CONFIG.headerHeight + taskIndex * GANTT_CONFIG.rowHeight + (GANTT_CONFIG.rowHeight - GANTT_CONFIG.barHeight) / 2;
-
-    // Log apenas se o mouse está próximo da barra (para reduzir poluição)
-    const isNearBar = Math.abs(y - (barY + GANTT_CONFIG.barHeight / 2)) < GANTT_CONFIG.rowHeight;
-    if (isNearBar) {
-      console.log('📊 Próximo da barra:', {
-        task: task.title,
-        mouseX: x,
-        mouseY: y,
-        barX,
-        barY,
-        barWidth,
-        barHeight: GANTT_CONFIG.barHeight,
-        insideX: x >= barX && x <= barX + barWidth,
-        insideY: y >= barY && y <= barY + GANTT_CONFIG.barHeight
-      });
-    }
 
     if (x >= barX && x <= barX + barWidth && y >= barY && y <= barY + GANTT_CONFIG.barHeight) {
       // Detectar se está nas extremidades (15px de margem para facilitar o resize)
@@ -835,22 +782,9 @@ export default function ProjectGanttV2() {
     const minDate = calculateMinDate(visibleTasks);
     const taskInfo = getTaskAtPosition(x, y, minDate);
 
-    console.log('🖱️ Mouse Down:', {
-      x, y,
-      scrollLeft: container.scrollLeft,
-      scrollTop: container.scrollTop,
-      taskInfo: taskInfo ? {
-        title: taskInfo.task.title,
-        isMilestone: taskInfo.task.is_milestone,
-        status: taskInfo.task.status,
-        edge: taskInfo.edge
-      } : null
-    });
-
     if (taskInfo && taskInfo.task.status !== 'done') {
       if (taskInfo.edge) {
         // Iniciar resize
-        console.log('📏 Iniciando resize de:', taskInfo.task.title, 'borda:', taskInfo.edge);
         setIsResizing(true);
         setResizeEdge(taskInfo.edge);
         setDraggedTask(taskInfo.task);
@@ -859,7 +793,6 @@ export default function ProjectGanttV2() {
         canvas.style.cursor = 'ew-resize';
       } else if (taskInfo.isProgressArea) {
         // Iniciar ajuste de progresso
-        console.log('📊 Iniciando ajuste de progresso de:', taskInfo.task.title);
         setIsAdjustingProgress(true);
         setProgressTask(taskInfo.task);
         setProgressStartValue(taskInfo.task.progress);
@@ -867,7 +800,6 @@ export default function ProjectGanttV2() {
         canvas.style.cursor = 'col-resize';
       } else {
         // Iniciar drag normal
-        console.log('✅ Iniciando drag de:', taskInfo.task.title);
         setIsDragging(true);
         setDraggedTask(taskInfo.task);
         setDragStartX(x);
@@ -989,20 +921,8 @@ export default function ProjectGanttV2() {
       const minDate = calculateMinDate(visibleTasks);
       const taskInfo = getTaskAtPosition(x, y, minDate);
 
-      // Atualizar debug info
-      setDebugInfo({
-        mouseX: Math.round(x),
-        mouseY: Math.round(y),
-        scrollLeft: container.scrollLeft,
-        scrollTop: container.scrollTop,
-        taskDetected: taskInfo ? taskInfo.task.title : 'nenhuma',
-        edge: taskInfo?.edge || 'centro',
-        status: taskInfo?.task.status || '-'
-      });
-
       if (taskInfo && taskInfo.task.status !== 'done') {
         if (taskInfo.edge) {
-          console.log('🎯 Cursor ew-resize na borda:', taskInfo.edge, 'de', taskInfo.task.title);
           canvas.style.cursor = 'ew-resize';
         } else if (taskInfo.isProgressArea) {
           canvas.style.cursor = 'col-resize';
@@ -1113,14 +1033,6 @@ export default function ProjectGanttV2() {
     const totalDays = Math.ceil((maxDate.getTime() - minDate.getTime()) / (1000 * 60 * 60 * 24));
     const calculatedWidth = totalDays * GANTT_CONFIG.dayWidth + 32; // 32px de padding lateral
     const canvasHeight = visibleTasks.length * GANTT_CONFIG.rowHeight + GANTT_CONFIG.headerHeight;
-
-    console.log('GANTT DEBUG:', {
-      totalDays,
-      dayWidth: GANTT_CONFIG.dayWidth,
-      calculatedWidth,
-      minDate: minDate.toISOString(),
-      maxDate: maxDate.toISOString()
-    });
 
     canvas.width = calculatedWidth;
     canvas.height = canvasHeight;
@@ -1652,22 +1564,8 @@ export default function ProjectGanttV2() {
 
   return (
     <div className="min-h-screen p-4 md:p-8 bg-background">
-      {/* Debug Panel */}
-      {debugInfo && (
-        <div className="fixed top-4 right-4 bg-black/90 text-white p-3 rounded-lg text-xs font-mono z-50">
-          <div className="font-bold mb-2">🔧 Debug Info</div>
-          <div>Mouse X: {debugInfo.mouseX}</div>
-          <div>Mouse Y: {debugInfo.mouseY}</div>
-          <div>Scroll X: {debugInfo.scrollLeft}</div>
-          <div>Scroll Y: {debugInfo.scrollTop}</div>
-          <div>Task: {debugInfo.taskDetected}</div>
-          <div className="font-bold text-yellow-400">Edge: {debugInfo.edge}</div>
-          <div>Status: {debugInfo.status}</div>
-        </div>
-      )}
-      <div>
-         {/* Header e Cards - FORA do container de scroll */}
-         <motion.div
+      {/* Header e Cards - FORA do container de scroll */}
+      <motion.div
            initial={{ opacity: 0, y: -20 }}
            animate={{ opacity: 1, y: 0 }}
            className="mb-4"
@@ -2109,10 +2007,9 @@ export default function ProjectGanttV2() {
             />
           </div>
         </div>
-      </div>
 
-      {/* Modal de IA */}
-      <AIGanttGeneratorModal
+        {/* Modal de IA */}
+        <AIGanttGeneratorModal
         open={showAIGeneratorModal}
         onClose={() => setShowAIGeneratorModal(false)}
         projectId={projectId || ""}
