@@ -155,6 +155,11 @@ export default function ProjectGanttV2() {
   const [resizeEdge, setResizeEdge] = useState<'left' | 'right' | null>(null);
   const [resizeStartDate, setResizeStartDate] = useState<Date | null>(null);
 
+  // Estados para ajuste de progresso
+  const [isAdjustingProgress, setIsAdjustingProgress] = useState(false);
+  const [progressTask, setProgressTask] = useState<Task | null>(null);
+  const [progressStartValue, setProgressStartValue] = useState(0);
+
   // Estado para debug
   const [debugInfo, setDebugInfo] = useState<any>(null);
   
@@ -742,7 +747,7 @@ export default function ProjectGanttV2() {
     return new Date(minDate.getFullYear(), minDate.getMonth(), minDate.getDate());
   };
 
-  const getTaskAtPosition = (x: number, y: number, minDate: Date): { task: Task, taskIndex: number, edge?: 'left' | 'right' | null } | null => {
+  const getTaskAtPosition = (x: number, y: number, minDate: Date): { task: Task, taskIndex: number, edge?: 'left' | 'right' | null, isProgressArea?: boolean } | null => {
     const visibleTasks = getVisibleTasks();
     const taskIndex = Math.floor((y - GANTT_CONFIG.headerHeight) / GANTT_CONFIG.rowHeight);
 
@@ -784,14 +789,21 @@ export default function ProjectGanttV2() {
       // Detectar se está nas extremidades (15px de margem para facilitar o resize)
       const edgeThreshold = 15;
       let edge: 'left' | 'right' | null = null;
+      let isProgressArea = false;
 
       if (x >= barX && x <= barX + edgeThreshold) {
         edge = 'left';
       } else if (x >= barX + barWidth - edgeThreshold && x <= barX + barWidth) {
         edge = 'right';
+      } else {
+        // Se está na metade inferior da barra, é área de progresso
+        const barMiddleY = barY + GANTT_CONFIG.barHeight / 2;
+        if (y >= barMiddleY) {
+          isProgressArea = true;
+        }
       }
 
-      return { task, taskIndex, edge };
+      return { task, taskIndex, edge, isProgressArea };
     }
 
     return null;
@@ -837,6 +849,14 @@ export default function ProjectGanttV2() {
         setDragStartX(x);
         setResizeStartDate(taskInfo.edge === 'left' ? new Date(taskInfo.task.start!) : new Date(taskInfo.task.finish!));
         canvas.style.cursor = 'ew-resize';
+      } else if (taskInfo.isProgressArea) {
+        // Iniciar ajuste de progresso
+        console.log('📊 Iniciando ajuste de progresso de:', taskInfo.task.title);
+        setIsAdjustingProgress(true);
+        setProgressTask(taskInfo.task);
+        setProgressStartValue(taskInfo.task.progress);
+        setDragStartX(x);
+        canvas.style.cursor = 'col-resize';
       } else {
         // Iniciar drag normal
         console.log('✅ Iniciando drag de:', taskInfo.task.title);
@@ -901,15 +921,15 @@ export default function ProjectGanttV2() {
       // Drag normal (mover toda a barra)
       const deltaX = x - dragStartX;
       const deltaDays = Math.round(deltaX / GANTT_CONFIG.dayWidth);
-      
+
       if (deltaDays !== 0) {
         const newStart = new Date(dragStartDate);
         newStart.setDate(newStart.getDate() + deltaDays);
-        
+
         const duration = Math.ceil((draggedTask.finish!.getTime() - draggedTask.start!.getTime()) / (1000 * 60 * 60 * 24));
         const newFinish = new Date(newStart);
         newFinish.setDate(newFinish.getDate() + duration);
-        
+
         setTasks(prevTasks => {
           const updateTaskInTree = (taskList: Task[]): Task[] => {
             return taskList.map(task => {
@@ -925,6 +945,34 @@ export default function ProjectGanttV2() {
           return updateTaskInTree(prevTasks);
         });
       }
+    } else if (isAdjustingProgress && progressTask) {
+      // Ajustar progresso pela barra
+      const visibleTasks = getVisibleTasks();
+      const minDate = calculateMinDate(visibleTasks);
+
+      const taskStartDays = Math.floor((progressTask.start!.getTime() - minDate.getTime()) / (1000 * 60 * 60 * 24));
+      const taskDurationDays = Math.ceil((progressTask.finish!.getTime() - progressTask.start!.getTime()) / (1000 * 60 * 60 * 24)) || 1;
+      const barX = taskStartDays * GANTT_CONFIG.dayWidth + 8;
+      const barWidth = taskDurationDays * GANTT_CONFIG.dayWidth - 16;
+
+      // Calcular progresso baseado na posição X do mouse dentro da barra
+      const relativeX = x - barX;
+      const newProgress = Math.max(0, Math.min(100, Math.round((relativeX / barWidth) * 100)));
+
+      setTasks(prevTasks => {
+        const updateTaskInTree = (taskList: Task[]): Task[] => {
+          return taskList.map(task => {
+            if (task.id === progressTask.id) {
+              return { ...task, progress: newProgress };
+            }
+            if (task.children && task.children.length > 0) {
+              return { ...task, children: updateTaskInTree(task.children) };
+            }
+            return task;
+          });
+        };
+        return updateTaskInTree(prevTasks);
+      });
     } else {
       // Atualizar cursor baseado na posição
       const visibleTasks = getVisibleTasks();
@@ -948,6 +996,8 @@ export default function ProjectGanttV2() {
         if (taskInfo.edge) {
           console.log('🎯 Cursor ew-resize na borda:', taskInfo.edge, 'de', taskInfo.task.title);
           canvas.style.cursor = 'ew-resize';
+        } else if (taskInfo.isProgressArea) {
+          canvas.style.cursor = 'col-resize';
         } else {
           canvas.style.cursor = 'grab';
         }
@@ -978,11 +1028,32 @@ export default function ProjectGanttV2() {
           const action = isResizing ? 'redimensionada' : 'movida';
           const duration = Math.ceil((currentTask.finish.getTime() - currentTask.start.getTime()) / (1000 * 60 * 60 * 24));
           toast.success(`Task ${action}: ${formatDate(currentTask.start)} - ${formatDate(currentTask.finish)} (${duration} dias)`);
-          // Não recarregar para manter a posição da tarefa
         }
       } catch (error) {
         console.error("Error updating task:", error);
         toast.error("Erro ao atualizar datas");
+      }
+    } else if (isAdjustingProgress && progressTask) {
+      const canvas = canvasRef.current;
+      if (canvas) {
+        canvas.style.cursor = 'default';
+      }
+
+      try {
+        const currentTask = tasks.flatMap(function flatten(t: Task): Task[] {
+          return [t, ...(t.children || []).flatMap(flatten)];
+        }).find(t => t.id === progressTask.id);
+
+        if (currentTask) {
+          await base44.entities.Task.update(progressTask.id, {
+            progress: currentTask.progress
+          });
+
+          toast.success(`Progresso atualizado: ${currentTask.progress}%`);
+        }
+      } catch (error) {
+        console.error("Error updating progress:", error);
+        toast.error("Erro ao atualizar progresso");
       }
     }
 
@@ -993,10 +1064,13 @@ export default function ProjectGanttV2() {
     setDragStartX(0);
     setDragStartDate(null);
     setResizeStartDate(null);
+    setIsAdjustingProgress(false);
+    setProgressTask(null);
+    setProgressStartValue(0);
   };
 
   const handleCanvasMouseLeave = () => {
-    if (isDragging || isResizing) {
+    if (isDragging || isResizing || isAdjustingProgress) {
       handleCanvasMouseUp();
     }
   };
