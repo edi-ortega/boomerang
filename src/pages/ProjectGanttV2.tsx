@@ -1660,23 +1660,36 @@ export default function ProjectGanttV2() {
            animate={{ opacity: 1, y: 0 }}
            className="mb-4"
          >
-          {/* Header com Botão Voltar e Título */}
-          <div className="flex items-center gap-4 mb-4">
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() => navigate(`/projectdetail?id=${projectId}`)}
-              className="border-border hover:bg-accent"
-            >
-              <ArrowLeft className="w-4 h-4 text-foreground" />
-            </Button>
-            <div>
-              <h1 className="text-3xl font-bold text-foreground flex items-center gap-2">
-                <GanttChartSquare className="w-8 h-8" />
-                Gantt - {project?.name}
-              </h1>
-              <p className="text-muted-foreground">Cronograma visual do projeto</p>
+          {/* Header com Botão Voltar, Título e Botão Caminho Crítico */}
+          <div className="flex items-center justify-between gap-4 mb-4">
+            <div className="flex items-center gap-4">
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => navigate(`/projectdetail?id=${projectId}`)}
+                className="border-border hover:bg-accent"
+              >
+                <ArrowLeft className="w-4 h-4 text-foreground" />
+              </Button>
+              <div>
+                <h1 className="text-3xl font-bold text-foreground flex items-center gap-2">
+                  <GanttChartSquare className="w-8 h-8" />
+                  Gantt - {project?.name}
+                </h1>
+                <p className="text-muted-foreground">Cronograma visual do projeto</p>
+              </div>
             </div>
+
+            {/* Botão Caminho Crítico */}
+            <Button
+              variant={showCriticalPath ? "default" : "outline"}
+              onClick={() => setShowCriticalPath(!showCriticalPath)}
+              className="gap-2"
+              size="lg"
+            >
+              <TrendingUp className="w-5 h-5" />
+              {showCriticalPath ? 'Ocultar' : 'Mostrar'} Caminho Crítico
+            </Button>
           </div>
 
           {/* Cards de estatísticas - Sempre visíveis */}
@@ -1791,48 +1804,65 @@ export default function ProjectGanttV2() {
               </Card>
           </div>
 
-          {/* Botões de Ação e Análise CPM */}
-          <div className="flex flex-wrap gap-2 items-center w-full">
-            <Button
-              variant={showCriticalPath ? "default" : "outline"}
-              onClick={() => setShowCriticalPath(!showCriticalPath)}
-              className="gap-2"
+          {/* Card de Resumo CPM - Aparece quando ativado */}
+          {showCriticalPath && cpmResult && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              className="mt-3"
             >
-              <TrendingUp className="w-4 h-4" />
-              {showCriticalPath ? 'Ocultar' : 'Mostrar'} Caminho Crítico
-            </Button>
-
-            {showCriticalPath && cpmResult && (
-              <Card className="glass-effect border-orange-500/50 flex-1">
-                <CardContent className="p-3">
-                  <div className="flex items-center gap-4">
-                    <div className="flex items-center gap-2">
-                      <div className="p-1.5 rounded bg-orange-100">
-                        <TrendingUp className="w-4 h-4 text-orange-600" />
+              <Card className="border-orange-500/50 shadow-lg">
+                <CardContent className="p-4">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    {/* Tarefas Críticas */}
+                    <div className="flex items-center gap-3">
+                      <div className="p-3 rounded-lg bg-gradient-to-br from-red-500 to-red-600 shadow-md">
+                        <AlertTriangle className="w-6 h-6 text-white" />
                       </div>
                       <div>
-                        <p className="text-xs text-muted-foreground">Tarefas Críticas</p>
-                        <p className="text-lg font-bold text-orange-600">
+                        <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Tarefas Críticas</p>
+                        <p className="text-2xl font-bold text-red-600">
                           {cpmResult.criticalPath.length}
+                        </p>
+                        <p className="text-xs text-muted-foreground">Folga = 0 dias</p>
+                      </div>
+                    </div>
+
+                    {/* Duração do Projeto */}
+                    <div className="flex items-center gap-3">
+                      <div className="p-3 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 shadow-md">
+                        <Clock className="w-6 h-6 text-white" />
+                      </div>
+                      <div>
+                        <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Duração Total</p>
+                        <p className="text-2xl font-bold text-blue-600">
+                          {cpmResult.projectDuration} dias
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          Fim: {new Date(cpmResult.projectEndDate).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })}
                         </p>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <div className="p-1.5 rounded bg-blue-100">
-                        <Clock className="w-4 h-4 text-blue-600" />
+
+                    {/* Tarefas com Folga */}
+                    <div className="flex items-center gap-3">
+                      <div className="p-3 rounded-lg bg-gradient-to-br from-green-500 to-green-600 shadow-md">
+                        <CheckCircle2 className="w-6 h-6 text-white" />
                       </div>
                       <div>
-                        <p className="text-xs text-muted-foreground">Duração do Projeto</p>
-                        <p className="text-lg font-bold text-blue-600">
-                          {cpmResult.projectDuration} dias
+                        <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Com Folga</p>
+                        <p className="text-2xl font-bold text-green-600">
+                          {Array.from(cpmResult.tasks.values()).filter(t => !t.isCritical).length}
                         </p>
+                        <p className="text-xs text-muted-foreground">Flexibilidade disponível</p>
                       </div>
                     </div>
                   </div>
                 </CardContent>
               </Card>
-            )}
-          </div>
+            </motion.div>
+          )}
         </motion.div>
 
         {/* Layout: Sidebar + Canvas */}
