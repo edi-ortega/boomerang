@@ -1496,33 +1496,33 @@ export default function ProjectGanttV2() {
   return (
     <div className="min-h-screen p-4 md:p-8 bg-background">
       <div>
-         {/* Header */}
+         {/* Header e Cards - FORA do container de scroll */}
          <motion.div
            initial={{ opacity: 0, y: -20 }}
            animate={{ opacity: 1, y: 0 }}
-           className="flex flex-col gap-4 mb-8"
+           className="mb-4"
          >
-          <div className="flex items-center justify-between gap-4">
-            <div className="flex items-center gap-4">
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={() => navigate(`/projectdetail?id=${projectId}`)}
-                className="border-border hover:bg-accent"
-              >
-                <ArrowLeft className="w-4 h-4 text-foreground" />
-              </Button>
-              <div>
-                <h1 className="text-3xl font-bold text-foreground flex items-center gap-2">
-                  <GanttChartSquare className="w-8 h-8" />
-                  Gantt - {project?.name}
-                </h1>
-                <p className="text-muted-foreground">Cronograma visual do projeto</p>
-              </div>
+          {/* Header com Botão Voltar e Título */}
+          <div className="flex items-center gap-4 mb-4">
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => navigate(`/projectdetail?id=${projectId}`)}
+              className="border-border hover:bg-accent"
+            >
+              <ArrowLeft className="w-4 h-4 text-foreground" />
+            </Button>
+            <div>
+              <h1 className="text-3xl font-bold text-foreground flex items-center gap-2">
+                <GanttChartSquare className="w-8 h-8" />
+                Gantt - {project?.name}
+              </h1>
+              <p className="text-muted-foreground">Cronograma visual do projeto</p>
             </div>
-            
-            {/* Cards de estatísticas - Mesma linha do header */}
-            <div className="flex gap-1.5 flex-wrap">
+          </div>
+
+          {/* Cards de estatísticas - Sempre visíveis */}
+          <div className="flex gap-1.5 flex-wrap">
               <Card className="glass-effect border-border/50 w-[105px]">
                 <CardContent className="p-2">
                   <div className="flex items-center gap-1.5">
@@ -1631,12 +1631,11 @@ export default function ProjectGanttV2() {
                   </div>
                 </CardContent>
               </Card>
-            </div>
           </div>
         </motion.div>
 
         {/* Layout: Sidebar + Canvas */}
-        <div className="flex overflow-hidden" style={{ height: 'calc(100vh - 250px)' }}>
+        <div className="flex overflow-hidden" style={{ height: 'calc(100vh - 300px)' }}>
           {/* Sidebar Esquerda - Lista de Tarefas com Colunas */}
           <div
             className="bg-white border-r border-gray-200 flex-shrink-0 shadow-lg flex flex-col overflow-y-auto"
