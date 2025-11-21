@@ -896,15 +896,10 @@ export default function ProjectGanttV2() {
           const action = isResizing ? 'redimensionada' : 'movida';
           const duration = Math.ceil((currentTask.finish.getTime() - currentTask.start.getTime()) / (1000 * 60 * 60 * 24));
           toast.success(`Task ${action}: ${formatDate(currentTask.start)} - ${formatDate(currentTask.finish)} (${duration} dias)`);
-
-          // Recarregar dados para garantir sincronização
-          await fetchInitialData();
         }
       } catch (error) {
         console.error("❌ Error updating task:", error);
         toast.error("Erro ao atualizar datas: " + (error as Error).message);
-        // Reverter mudanças em caso de erro
-        await fetchInitialData();
       }
     } else if (isAdjustingProgress && progressTask) {
       const canvas = canvasRef.current;
@@ -930,15 +925,10 @@ export default function ProjectGanttV2() {
           console.log('✅ Task progress updated successfully:', updateResult);
 
           toast.success(`Progresso atualizado: ${currentTask.progress}%`);
-
-          // Recarregar dados para garantir sincronização
-          await fetchInitialData();
         }
       } catch (error) {
         console.error("❌ Error updating progress:", error);
         toast.error("Erro ao atualizar progresso: " + (error as Error).message);
-        // Reverter mudanças em caso de erro
-        await fetchInitialData();
       }
     }
 
