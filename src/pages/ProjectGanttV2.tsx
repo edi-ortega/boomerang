@@ -568,14 +568,6 @@ export default function ProjectGanttV2() {
         client_id: tenantId,
       };
 
-      // Verificar se as datas foram realmente alteradas
-      const datesChanged = editingTask && (
-        (editingTask.start_date || '') !== (taskForm.start_date || '') || 
-        (editingTask.due_date || '') !== (taskForm.due_date || '')
-      );
-      
-      const shouldReorder = !editingTask || datesChanged;
-
       if (editingTask) {
         // Agora enviamos o status junto, pois a lógica está no frontend
         const { data, error } = await (supabase as any)
@@ -604,79 +596,11 @@ export default function ProjectGanttV2() {
 
       setShowTaskForm(false);
       await reloadTasks();
-      
-      // Reordenar tarefas APENAS se for nova tarefa OU se as datas foram alteradas
-      if (shouldReorder) {
-        await reorderTasksByDate();
-      }
     } catch (error) {
       console.error("Error saving task:", error);
       toast.error("Erro ao salvar tarefa");
     } finally {
       setIsSaving(false);
-    }
-  };
-
-  const reorderTasksByDate = async () => {
-    try {
-      const supabase = await getSupabaseClient();
-      
-      // Buscar todas as tarefas do projeto
-      const { data: allTasks, error: fetchError } = await (supabase as any)
-        .from('prj_task')
-        .select('id, start_date, due_date, task_number, parent_id')
-        .eq('project_id', projectId)
-        .eq('client_id', tenantId)
-        .order('start_date', { ascending: true });
-      
-      if (fetchError) throw fetchError;
-      
-      // Agrupar por parent_id (tarefas sem pai e subtarefas)
-      const taskGroups = new Map<string | null, any[]>();
-      allTasks?.forEach((task: any) => {
-        const parentKey = task.parent_id || 'root';
-        if (!taskGroups.has(parentKey)) {
-          taskGroups.set(parentKey, []);
-        }
-        taskGroups.get(parentKey)!.push(task);
-      });
-      
-      // Reordenar cada grupo
-      const updates: any[] = [];
-      taskGroups.forEach((group) => {
-        // Ordenar por data de início
-        group.sort((a, b) => {
-          const dateA = new Date(a.start_date || '9999-12-31').getTime();
-          const dateB = new Date(b.start_date || '9999-12-31').getTime();
-          return dateA - dateB;
-        });
-        
-        // Atualizar task_number sequencialmente
-        group.forEach((task, index) => {
-          const newTaskNumber = index + 1;
-          if (task.task_number !== newTaskNumber) {
-            updates.push({
-              id: task.id,
-              task_number: newTaskNumber
-            });
-          }
-        });
-      });
-      
-      // Aplicar atualizações em lote
-      if (updates.length > 0) {
-        for (const update of updates) {
-          await (supabase as any)
-            .from('prj_task')
-            .update({ task_number: update.task_number })
-            .eq('id', update.id)
-            .eq('client_id', tenantId);
-        }
-
-        await reloadTasks();
-      }
-    } catch (error) {
-      console.error("Error reordering tasks:", error);
     }
   };
 
