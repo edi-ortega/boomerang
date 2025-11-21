@@ -1919,16 +1919,18 @@ export default function ProjectGanttV2() {
           </div>
 
           {/* Canvas à Direita */}
-          <div ref={canvasContainerRef} className="overflow-auto bg-gradient-to-br from-gray-50 to-blue-50" style={{ flex: '1 1 0', minWidth: 0 }}>
-            <canvas
-              ref={canvasRef}
-              className="cursor-default"
-              style={{ display: 'block', width: 'auto', height: 'auto', maxWidth: 'none' }}
-              onMouseDown={handleCanvasMouseDown}
-              onMouseMove={handleCanvasMouseMove}
-              onMouseUp={handleCanvasMouseUp}
-              onMouseLeave={handleCanvasMouseLeave}
-            />
+          <div ref={canvasContainerRef} className="flex-1 overflow-auto bg-gradient-to-br from-gray-50 to-blue-50" style={{ minWidth: 0, width: '100%' }}>
+            <div style={{ display: 'inline-block' }}>
+              <canvas
+                ref={canvasRef}
+                className="cursor-default"
+                style={{ display: 'block' }}
+                onMouseDown={handleCanvasMouseDown}
+                onMouseMove={handleCanvasMouseMove}
+                onMouseUp={handleCanvasMouseUp}
+                onMouseLeave={handleCanvasMouseLeave}
+              />
+            </div>
           </div>
         </div>
       </div>
