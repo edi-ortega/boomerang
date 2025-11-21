@@ -25,22 +25,21 @@ export default function TenantSelectorSection() {
     try {
       setLoading(true);
 
-      // Buscar o usuário atual
-      const { data: { user } } = await supabase.auth.getUser();
-      console.log('Auth user:', user?.id);
-      if (!user) return;
+      // Buscar user_id da sessão BMR no localStorage
+      const storedSession = localStorage.getItem('bmr_session');
+      console.log('Stored session:', storedSession);
 
-      // Buscar o user_id na tabela bmr_user
-      const { data: bmrUser, error: userError } = await supabase
-        .from('bmr_user')
-        .select('user_id')
-        .eq('auth_user_id', user.id)
-        .single();
+      if (!storedSession) {
+        console.warn('No BMR session found');
+        return;
+      }
 
-      console.log('BMR User:', bmrUser, 'Error:', userError);
+      const parsedSession = JSON.parse(storedSession);
+      const userId = parsedSession.user?.user_id;
+      console.log('User ID from session:', userId);
 
-      if (userError || !bmrUser) {
-        console.error('Error loading user:', userError);
+      if (!userId) {
+        console.warn('No user_id in session');
         return;
       }
 
@@ -48,7 +47,7 @@ export default function TenantSelectorSection() {
       const { data: userClients, error: clientsError } = await supabase
         .from('vbmr_user_clients')
         .select('*')
-        .eq('user_id', bmrUser.user_id);
+        .eq('user_id', userId);
 
       console.log('User clients from view:', userClients, 'Error:', clientsError);
 
