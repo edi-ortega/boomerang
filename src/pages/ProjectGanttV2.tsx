@@ -999,7 +999,7 @@ export default function ProjectGanttV2() {
         } else if (taskInfo.isProgressArea) {
           canvas.style.cursor = 'col-resize';
         } else {
-          canvas.style.cursor = 'grab';
+          canvas.style.cursor = 'pointer';
         }
       } else {
         canvas.style.cursor = 'default';
