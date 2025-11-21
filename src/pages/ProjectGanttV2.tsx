@@ -736,10 +736,16 @@ export default function ProjectGanttV2() {
     const visibleTasks = getVisibleTasks();
     const taskIndex = Math.floor((y - GANTT_CONFIG.headerHeight) / GANTT_CONFIG.rowHeight);
 
-    if (taskIndex < 0 || taskIndex >= visibleTasks.length) return null;
+    if (taskIndex < 0 || taskIndex >= visibleTasks.length) {
+      console.log('❌ taskIndex fora dos limites:', taskIndex, 'total visible:', visibleTasks.length);
+      return null;
+    }
 
     const task = visibleTasks[taskIndex];
-    if (!task.start || !task.finish) return null;
+    if (!task.start || !task.finish) {
+      console.log('❌ Task sem datas:', task.title);
+      return null;
+    }
 
     const taskStartDays = Math.floor((task.start.getTime() - minDate.getTime()) / (1000 * 60 * 60 * 24));
     const taskDurationDays = Math.ceil((task.finish.getTime() - task.start.getTime()) / (1000 * 60 * 60 * 24)) || 1;
@@ -747,6 +753,22 @@ export default function ProjectGanttV2() {
     const barX = taskStartDays * GANTT_CONFIG.dayWidth + 8;
     const barWidth = taskDurationDays * GANTT_CONFIG.dayWidth - 16;
     const barY = GANTT_CONFIG.headerHeight + taskIndex * GANTT_CONFIG.rowHeight + (GANTT_CONFIG.rowHeight - GANTT_CONFIG.barHeight) / 2;
+
+    // Log apenas se o mouse está próximo da barra (para reduzir poluição)
+    const isNearBar = Math.abs(y - (barY + GANTT_CONFIG.barHeight / 2)) < GANTT_CONFIG.rowHeight;
+    if (isNearBar) {
+      console.log('📊 Próximo da barra:', {
+        task: task.title,
+        mouseX: x,
+        mouseY: y,
+        barX,
+        barY,
+        barWidth,
+        barHeight: GANTT_CONFIG.barHeight,
+        insideX: x >= barX && x <= barX + barWidth,
+        insideY: y >= barY && y <= barY + GANTT_CONFIG.barHeight
+      });
+    }
 
     if (x >= barX && x <= barX + barWidth && y >= barY && y <= barY + GANTT_CONFIG.barHeight) {
       // Detectar se está nas extremidades (15px de margem para facilitar o resize)
