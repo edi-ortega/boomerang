@@ -10,6 +10,8 @@ import TaskTypeManagementSection from "@/components/settings/TaskTypeManagementS
 import ProjectCategoryManagementSection from "@/components/settings/ProjectCategoryManagementSection";
 import TeamManagementSection from "@/components/settings/TeamManagementSection";
 import WorkCalendarManagementSection from "@/components/settings/WorkCalendarManagementSection";
+import TenantSelectorSection from "@/components/settings/TenantSelectorSection";
+import ThemeSelectorSection from "@/components/settings/ThemeSelectorSection";
 
 export default function GeneralSettings() {
   const navigate = useNavigate();
@@ -36,14 +38,24 @@ export default function GeneralSettings() {
           </div>
         </motion.div>
 
-        <Tabs defaultValue="project_categories" className="w-full">
-          <TabsList className="grid w-full grid-cols-5 mb-6">
-            <TabsTrigger value="project_categories">Categorias de Projeto</TabsTrigger>
-            <TabsTrigger value="user_types">Tipos de Usuário</TabsTrigger>
-            <TabsTrigger value="story_types">Tipos de História</TabsTrigger>
-            <TabsTrigger value="task_types">Tipos de Tarefa</TabsTrigger>
+        <Tabs defaultValue="company" className="w-full">
+          <TabsList className="grid w-full grid-cols-7 mb-6">
+            <TabsTrigger value="company">Empresa</TabsTrigger>
+            <TabsTrigger value="appearance">Aparência</TabsTrigger>
+            <TabsTrigger value="project_categories">Categorias</TabsTrigger>
+            <TabsTrigger value="user_types">Usuários</TabsTrigger>
+            <TabsTrigger value="story_types">Histórias</TabsTrigger>
+            <TabsTrigger value="task_types">Tarefas</TabsTrigger>
             <TabsTrigger value="teams">Equipes</TabsTrigger>
           </TabsList>
+
+          <TabsContent value="company">
+            <TenantSelectorSection />
+          </TabsContent>
+
+          <TabsContent value="appearance">
+            <ThemeSelectorSection />
+          </TabsContent>
 
           <TabsContent value="project_categories">
             <ProjectCategoryManagementSection />

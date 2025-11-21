@@ -1,0 +1,154 @@
+import { useState, useEffect } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Building2, Check } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { supabase } from '@/integrations/supabase/client';
+import { useTenantId } from '@/hooks/useTenantId';
+import { toast } from 'sonner';
+
+interface Tenant {
+  id: string;
+  name: string;
+  description?: string;
+}
+
+export default function TenantSelectorSection() {
+  const [tenants, setTenants] = useState<Tenant[]>([]);
+  const [loading, setLoading] = useState(true);
+  const { tenantId, setTenantId } = useTenantId();
+
+  useEffect(() => {
+    loadTenants();
+  }, []);
+
+  const loadTenants = async () => {
+    try {
+      setLoading(true);
+
+      // Buscar o usuário atual
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      // Buscar os tenants associados ao usuário
+      const { data: userTenants, error } = await supabase
+        .from('user_tenants')
+        .select(`
+          tenant_id,
+          tenants (
+            id,
+            name,
+            description
+          )
+        `)
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+
+      const tenantsData = userTenants
+        ?.map(ut => (ut as any).tenants)
+        .filter(Boolean) || [];
+
+      setTenants(tenantsData);
+    } catch (error) {
+      console.error('Error loading tenants:', error);
+      toast.error('Erro ao carregar empresas');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSelectTenant = (newTenantId: string) => {
+    setTenantId(newTenantId);
+    toast.success('Empresa selecionada com sucesso!');
+
+    // Recarregar página para atualizar dados
+    setTimeout(() => {
+      window.location.reload();
+    }, 500);
+  };
+
+  if (loading) {
+    return (
+      <Card>
+        <CardContent className="p-6">
+          <p className="text-muted-foreground">Carregando empresas...</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      <div>
+        <h2 className="text-2xl font-bold text-foreground mb-2">Selecionar Empresa</h2>
+        <p className="text-muted-foreground">
+          Escolha a empresa que deseja visualizar. Seus dados serão filtrados de acordo com a empresa selecionada.
+        </p>
+      </div>
+
+      {tenants.length === 0 ? (
+        <Card>
+          <CardContent className="p-6">
+            <p className="text-muted-foreground">Nenhuma empresa encontrada.</p>
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {tenants.map((tenant, index) => (
+            <motion.div
+              key={tenant.id}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: index * 0.1 }}
+            >
+              <Card
+                className={`cursor-pointer transition-all hover:shadow-lg ${
+                  tenantId === tenant.id
+                    ? 'border-primary border-2 bg-primary/5'
+                    : 'border-border hover:border-primary/50'
+                }`}
+                onClick={() => handleSelectTenant(tenant.id)}
+              >
+                <CardHeader>
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-center gap-3">
+                      <div
+                        className={`p-3 rounded-lg ${
+                          tenantId === tenant.id
+                            ? 'bg-primary text-primary-foreground'
+                            : 'bg-muted text-muted-foreground'
+                        }`}
+                      >
+                        <Building2 className="w-6 h-6" />
+                      </div>
+                      <div>
+                        <CardTitle className="text-lg">{tenant.name}</CardTitle>
+                        {tenant.description && (
+                          <CardDescription className="mt-1">
+                            {tenant.description}
+                          </CardDescription>
+                        )}
+                      </div>
+                    </div>
+                    {tenantId === tenant.id && (
+                      <div className="p-1 rounded-full bg-primary">
+                        <Check className="w-4 h-4 text-primary-foreground" />
+                      </div>
+                    )}
+                  </div>
+                </CardHeader>
+                {tenantId === tenant.id && (
+                  <CardContent className="pt-0">
+                    <div className="px-3 py-1.5 rounded-md bg-primary/10 text-primary text-sm font-medium inline-block">
+                      Selecionada
+                    </div>
+                  </CardContent>
+                )}
+              </Card>
+            </motion.div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
