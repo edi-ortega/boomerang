@@ -27,6 +27,7 @@ export default function TenantSelectorSection() {
 
       // Buscar o usuário atual
       const { data: { user } } = await supabase.auth.getUser();
+      console.log('Auth user:', user?.id);
       if (!user) return;
 
       // Buscar o user_id na tabela bmr_user
@@ -35,6 +36,8 @@ export default function TenantSelectorSection() {
         .select('user_id')
         .eq('auth_user_id', user.id)
         .single();
+
+      console.log('BMR User:', bmrUser, 'Error:', userError);
 
       if (userError || !bmrUser) {
         console.error('Error loading user:', userError);
@@ -47,14 +50,21 @@ export default function TenantSelectorSection() {
         .select('*')
         .eq('user_id', bmrUser.user_id);
 
+      console.log('User clients from view:', userClients, 'Error:', clientsError);
+
       if (clientsError) throw clientsError;
 
       // Mapear os dados da view para o formato esperado
-      const tenantsData = userClients?.map(client => ({
-        id: client.client_id || client.system_id,
-        name: client.client_name || client.system_name,
-        description: client.client_description || client.system_description
-      })) || [];
+      const tenantsData = userClients?.map(client => {
+        console.log('Client data:', client);
+        return {
+          id: client.client_id || client.system_id,
+          name: client.client_name || client.system_name,
+          description: client.client_description || client.system_description
+        };
+      }).filter(t => t.id && t.name) || [];
+
+      console.log('Tenants data mapped:', tenantsData);
 
       setTenants(tenantsData);
     } catch (error) {
