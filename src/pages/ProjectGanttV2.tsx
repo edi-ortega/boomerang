@@ -2258,41 +2258,32 @@ export default function ProjectGanttV2() {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="mt-4 border-t border-border pt-4"
+        className="mt-3 border-t border-border pt-2"
       >
-        <div className="grid grid-cols-1 md:grid-cols-6 gap-3">
+        <div className="grid grid-cols-3 md:grid-cols-6 gap-2">
           {/* 1. Duração Total do Projeto */}
           <Card className="glass-effect border-border/50">
-            <CardContent className="p-3">
-              <div className="flex items-center gap-2">
-                <div className="p-1.5 rounded bg-blue-100">
-                  <Calendar className="w-4 h-4 text-blue-600" />
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Duração</p>
-                  <p className="text-lg font-bold text-blue-600">
-                    {projectStats.projectDurationDays > 0 ? `${projectStats.projectDurationDays} dias` : 'N/A'}
+            <CardContent className="p-2">
+              <div className="flex items-center gap-1.5">
+                <Calendar className="w-3.5 h-3.5 text-blue-600 flex-shrink-0" />
+                <div className="min-w-0">
+                  <p className="text-[10px] text-muted-foreground truncate">Duração</p>
+                  <p className="text-sm font-bold text-blue-600 truncate">
+                    {projectStats.projectDurationDays > 0 ? `${projectStats.projectDurationDays}d` : '-'}
                   </p>
                 </div>
               </div>
-              {projectStats.projectStartDate && projectStats.projectEndDate && (
-                <p className="text-[10px] text-muted-foreground mt-1">
-                  {projectStats.projectStartDate.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })} → {projectStats.projectEndDate.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })}
-                </p>
-              )}
             </CardContent>
           </Card>
 
           {/* 2. Tarefas Atrasadas */}
           <Card className="glass-effect border-border/50">
-            <CardContent className="p-3">
-              <div className="flex items-center gap-2">
-                <div className="p-1.5 rounded bg-red-100">
-                  <Clock className="w-4 h-4 text-red-600" />
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Atrasadas</p>
-                  <p className="text-lg font-bold text-red-600">{projectStats.overdueTasks}</p>
+            <CardContent className="p-2">
+              <div className="flex items-center gap-1.5">
+                <Clock className="w-3.5 h-3.5 text-red-600 flex-shrink-0" />
+                <div className="min-w-0">
+                  <p className="text-[10px] text-muted-foreground truncate">Atrasadas</p>
+                  <p className="text-sm font-bold text-red-600">{projectStats.overdueTasks}</p>
                 </div>
               </div>
             </CardContent>
@@ -2300,14 +2291,12 @@ export default function ProjectGanttV2() {
 
           {/* 3. Caminho Crítico */}
           <Card className="glass-effect border-border/50">
-            <CardContent className="p-3">
-              <div className="flex items-center gap-2">
-                <div className="p-1.5 rounded bg-purple-100">
-                  <Target className="w-4 h-4 text-purple-600" />
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">C. Crítico</p>
-                  <p className="text-lg font-bold text-purple-600">{projectStats.criticalPathTasks}</p>
+            <CardContent className="p-2">
+              <div className="flex items-center gap-1.5">
+                <Target className="w-3.5 h-3.5 text-purple-600 flex-shrink-0" />
+                <div className="min-w-0">
+                  <p className="text-[10px] text-muted-foreground truncate">Crítico</p>
+                  <p className="text-sm font-bold text-purple-600">{projectStats.criticalPathTasks}</p>
                 </div>
               </div>
             </CardContent>
@@ -2315,14 +2304,12 @@ export default function ProjectGanttV2() {
 
           {/* 5. Recursos Alocados */}
           <Card className="glass-effect border-border/50">
-            <CardContent className="p-3">
-              <div className="flex items-center gap-2">
-                <div className="p-1.5 rounded bg-green-100">
-                  <Users className="w-4 h-4 text-green-600" />
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Recursos</p>
-                  <p className="text-lg font-bold text-green-600">{projectStats.resourcesAllocated}</p>
+            <CardContent className="p-2">
+              <div className="flex items-center gap-1.5">
+                <Users className="w-3.5 h-3.5 text-green-600 flex-shrink-0" />
+                <div className="min-w-0">
+                  <p className="text-[10px] text-muted-foreground truncate">Recursos</p>
+                  <p className="text-sm font-bold text-green-600">{projectStats.resourcesAllocated}</p>
                 </div>
               </div>
             </CardContent>
@@ -2330,14 +2317,12 @@ export default function ProjectGanttV2() {
 
           {/* 6. Carga de Trabalho */}
           <Card className="glass-effect border-border/50">
-            <CardContent className="p-3">
-              <div className="flex items-center gap-2">
-                <div className="p-1.5 rounded bg-amber-100">
-                  <Activity className="w-4 h-4 text-amber-600" />
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Carga</p>
-                  <p className="text-lg font-bold text-amber-600">{projectStats.totalWorkloadDays} dias</p>
+            <CardContent className="p-2">
+              <div className="flex items-center gap-1.5">
+                <Activity className="w-3.5 h-3.5 text-amber-600 flex-shrink-0" />
+                <div className="min-w-0">
+                  <p className="text-[10px] text-muted-foreground truncate">Carga</p>
+                  <p className="text-sm font-bold text-amber-600">{projectStats.totalWorkloadDays}d</p>
                 </div>
               </div>
             </CardContent>
@@ -2345,14 +2330,12 @@ export default function ProjectGanttV2() {
 
           {/* 8. Taxa de Conclusão */}
           <Card className="glass-effect border-border/50">
-            <CardContent className="p-3">
-              <div className="flex items-center gap-2">
-                <div className="p-1.5 rounded bg-teal-100">
-                  <TrendingUp className="w-4 h-4 text-teal-600" />
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Velocidade</p>
-                  <p className="text-lg font-bold text-teal-600">{projectStats.completionRate}/dia</p>
+            <CardContent className="p-2">
+              <div className="flex items-center gap-1.5">
+                <TrendingUp className="w-3.5 h-3.5 text-teal-600 flex-shrink-0" />
+                <div className="min-w-0">
+                  <p className="text-[10px] text-muted-foreground truncate">Velocidade</p>
+                  <p className="text-sm font-bold text-teal-600">{projectStats.completionRate}/d</p>
                 </div>
               </div>
             </CardContent>
