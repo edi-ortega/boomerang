@@ -796,14 +796,16 @@ export default function ProjectGanttV2() {
       } else if (x >= barX + barWidth - edgeThreshold && x <= barX + barWidth) {
         edge = 'right';
       } else {
-        // Se está na metade inferior da barra E sobre a parte verde (progresso)
+        // Detectar se está sobre a divisão entre verde e cinza (borda do progresso)
         const barMiddleY = barY + GANTT_CONFIG.barHeight / 2;
         if (y >= barMiddleY) {
-          // Calcular a largura da barra de progresso
           const progress = task.progress || 0;
           const progressWidth = (barWidth * progress) / 100;
-          // Só é área de progresso se estiver sobre a parte verde
-          if (x <= barX + progressWidth) {
+          const progressEdgeX = barX + progressWidth;
+          const progressEdgeThreshold = 10; // 10px de área sensível na borda do progresso
+
+          // Só é área de progresso se estiver próximo da borda verde/cinza
+          if (Math.abs(x - progressEdgeX) <= progressEdgeThreshold) {
             isProgressArea = true;
           }
         }
