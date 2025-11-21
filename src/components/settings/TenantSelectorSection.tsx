@@ -41,31 +41,20 @@ export default function TenantSelectorSection() {
         return;
       }
 
-      // Buscar os sistemas associados ao usuário através de bmr_user_system_access
-      const { data: userAccess, error: accessError } = await supabase
-        .from('bmr_user_system_access')
-        .select(`
-          system_id,
-          bmr_system (
-            system_id,
-            system_name,
-            system_description
-          )
-        `)
+      // Buscar os clientes através da view vbmr_user_clients
+      const { data: userClients, error: clientsError } = await supabase
+        .from('vbmr_user_clients')
+        .select('*')
         .eq('user_id', bmrUser.user_id);
 
-      if (accessError) throw accessError;
+      if (clientsError) throw clientsError;
 
-      const tenantsData = userAccess
-        ?.map(access => {
-          const system = (access as any).bmr_system;
-          return system ? {
-            id: system.system_id,
-            name: system.system_name,
-            description: system.system_description
-          } : null;
-        })
-        .filter(Boolean) || [];
+      // Mapear os dados da view para o formato esperado
+      const tenantsData = userClients?.map(client => ({
+        id: client.client_id || client.system_id,
+        name: client.client_name || client.system_name,
+        description: client.client_description || client.system_description
+      })) || [];
 
       setTenants(tenantsData);
     } catch (error) {
