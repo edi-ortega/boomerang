@@ -880,18 +880,31 @@ export default function ProjectGanttV2() {
         }).find(t => t.id === draggedTask.id);
 
         if (currentTask && currentTask.start && currentTask.finish) {
-          await base44.entities.Task.update(draggedTask.id, {
+          console.log('🔄 Updating task dates:', {
+            taskId: draggedTask.id,
             start_date: currentTask.start.toISOString().split('T')[0],
             due_date: currentTask.finish.toISOString().split('T')[0]
           });
 
+          const updateResult = await base44.entities.Task.update(draggedTask.id, {
+            start_date: currentTask.start.toISOString().split('T')[0],
+            due_date: currentTask.finish.toISOString().split('T')[0]
+          });
+
+          console.log('✅ Task dates updated successfully:', updateResult);
+
           const action = isResizing ? 'redimensionada' : 'movida';
           const duration = Math.ceil((currentTask.finish.getTime() - currentTask.start.getTime()) / (1000 * 60 * 60 * 24));
           toast.success(`Task ${action}: ${formatDate(currentTask.start)} - ${formatDate(currentTask.finish)} (${duration} dias)`);
+
+          // Recarregar dados para garantir sincronização
+          await fetchInitialData();
         }
       } catch (error) {
-        console.error("Error updating task:", error);
-        toast.error("Erro ao atualizar datas");
+        console.error("❌ Error updating task:", error);
+        toast.error("Erro ao atualizar datas: " + (error as Error).message);
+        // Reverter mudanças em caso de erro
+        await fetchInitialData();
       }
     } else if (isAdjustingProgress && progressTask) {
       const canvas = canvasRef.current;
@@ -905,15 +918,27 @@ export default function ProjectGanttV2() {
         }).find(t => t.id === progressTask.id);
 
         if (currentTask) {
-          await base44.entities.Task.update(progressTask.id, {
+          console.log('🔄 Updating task progress:', {
+            taskId: progressTask.id,
             progress: currentTask.progress
           });
 
+          const updateResult = await base44.entities.Task.update(progressTask.id, {
+            progress: currentTask.progress
+          });
+
+          console.log('✅ Task progress updated successfully:', updateResult);
+
           toast.success(`Progresso atualizado: ${currentTask.progress}%`);
+
+          // Recarregar dados para garantir sincronização
+          await fetchInitialData();
         }
       } catch (error) {
-        console.error("Error updating progress:", error);
-        toast.error("Erro ao atualizar progresso");
+        console.error("❌ Error updating progress:", error);
+        toast.error("Erro ao atualizar progresso: " + (error as Error).message);
+        // Reverter mudanças em caso de erro
+        await fetchInitialData();
       }
     }
 
