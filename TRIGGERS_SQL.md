@@ -40,8 +40,7 @@ BEGIN
   SELECT COALESCE(AVG(progress), 0)
   INTO v_avg_progress
   FROM prj_task
-  WHERE parent_id = v_parent_id
-  AND deleted_at IS NULL;
+  WHERE parent_id = v_parent_id;
 
   -- Atualizar progresso do pai
   UPDATE prj_task
@@ -91,7 +90,6 @@ BEGIN
     v_max_due_date
   FROM prj_task
   WHERE parent_id = v_parent_id
-  AND deleted_at IS NULL
   AND start_date IS NOT NULL
   AND due_date IS NOT NULL;
 
