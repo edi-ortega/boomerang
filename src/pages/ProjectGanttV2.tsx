@@ -1522,111 +1522,111 @@ export default function ProjectGanttV2() {
           </div>
 
           {/* Cards de estatísticas - Sempre visíveis */}
-          <div className="flex gap-1.5 flex-wrap">
-              <Card className="glass-effect border-border/50 w-[105px]">
-                <CardContent className="p-2">
-                  <div className="flex items-center gap-1.5">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2 w-full">
+              <Card className="glass-effect border-border/50">
+                <CardContent className="p-3">
+                  <div className="flex items-center gap-2">
                     <div className="p-1.5 rounded bg-primary/10">
-                      <Target className="w-3.5 h-3.5 text-primary" />
+                      <Target className="w-4 h-4 text-primary" />
                     </div>
                     <div>
-                      <p className="text-[10px] text-muted-foreground">Total</p>
-                      <p className="text-base font-bold text-foreground">{projectStats.totalTasks}</p>
+                      <p className="text-xs text-muted-foreground">Total</p>
+                      <p className="text-lg font-bold text-foreground">{projectStats.totalTasks}</p>
                     </div>
                   </div>
                 </CardContent>
               </Card>
-              
-              <Card className="glass-effect border-border/50 w-[105px]">
-                <CardContent className="p-2">
-                  <div className="flex items-center gap-1.5">
+
+              <Card className="glass-effect border-border/50">
+                <CardContent className="p-3">
+                  <div className="flex items-center gap-2">
                     <div className="p-1.5 rounded bg-success/10">
-                      <CheckCircle2 className="w-3.5 h-3.5 text-success" />
+                      <CheckCircle2 className="w-4 h-4 text-success" />
                     </div>
                     <div>
-                      <p className="text-[10px] text-muted-foreground">Concluídas</p>
-                      <p className="text-base font-bold text-success">{projectStats.completedTasks}</p>
+                      <p className="text-xs text-muted-foreground">Concluídas</p>
+                      <p className="text-lg font-bold text-success">{projectStats.completedTasks}</p>
                     </div>
                   </div>
                 </CardContent>
               </Card>
-              
-              <Card className="glass-effect border-border/50 w-[130px]">
-                <CardContent className="p-2">
-                  <div className="flex items-center gap-1.5">
+
+              <Card className="glass-effect border-border/50">
+                <CardContent className="p-3">
+                  <div className="flex items-center gap-2">
                     <div className="p-1.5 rounded bg-destructive/10">
-                      <AlertCircle className="w-3.5 h-3.5 text-destructive" />
+                      <AlertCircle className="w-4 h-4 text-destructive" />
                     </div>
                     <div>
-                      <p className="text-[10px] text-muted-foreground">Bloqueadas</p>
-                      <p className="text-base font-bold text-destructive">{projectStats.blockedTasks}</p>
+                      <p className="text-xs text-muted-foreground">Bloqueadas</p>
+                      <p className="text-lg font-bold text-destructive">{projectStats.blockedTasks}</p>
                     </div>
                   </div>
                 </CardContent>
               </Card>
-              
-              <Card className="glass-effect border-border/50 w-[130px]">
-                <CardContent className="p-2">
-                  <div className="flex items-center gap-1.5">
+
+              <Card className="glass-effect border-border/50">
+                <CardContent className="p-3">
+                  <div className="flex items-center gap-2">
                     <div className="p-1.5 rounded bg-orange-100">
-                      <AlertTriangle className="w-3.5 h-3.5 text-orange-600" />
+                      <AlertTriangle className="w-4 h-4 text-orange-600" />
                     </div>
                     <div>
-                      <p className="text-[10px] text-muted-foreground">Riscos</p>
-                      <p className="text-base font-bold text-orange-600">{projectStats.activeRisks || 0}</p>
+                      <p className="text-xs text-muted-foreground">Riscos</p>
+                      <p className="text-lg font-bold text-orange-600">{projectStats.activeRisks || 0}</p>
                     </div>
                   </div>
                 </CardContent>
               </Card>
-              
-              <Card className="glass-effect border-border/50 w-[130px]">
-                <CardContent className="p-2">
-                  <div className="flex items-center gap-1.5">
+
+              <Card className="glass-effect border-border/50">
+                <CardContent className="p-3">
+                  <div className="flex items-center gap-2">
                     <div className="p-1.5 rounded bg-yellow-100">
-                      <AlertCircle className="w-3.5 h-3.5 text-yellow-600" />
+                      <AlertCircle className="w-4 h-4 text-yellow-600" />
                     </div>
                     <div>
-                      <p className="text-[10px] text-muted-foreground">Issues</p>
-                      <p className="text-base font-bold text-yellow-600">{projectStats.openIssues || 0}</p>
+                      <p className="text-xs text-muted-foreground">Issues</p>
+                      <p className="text-lg font-bold text-yellow-600">{projectStats.openIssues || 0}</p>
                     </div>
                   </div>
                 </CardContent>
               </Card>
-              
-              <Card className="glass-effect border-border/50 w-[130px]">
-                <CardContent className="p-2">
-                  <div className="flex items-center gap-1.5">
-                    <div className="relative inline-flex items-center justify-center w-8 h-8">
-                      <svg width="32" height="32" className="transform -rotate-90">
+
+              <Card className="glass-effect border-border/50">
+                <CardContent className="p-3">
+                  <div className="flex items-center gap-2">
+                    <div className="relative inline-flex items-center justify-center w-10 h-10">
+                      <svg width="40" height="40" className="transform -rotate-90">
                         <circle
-                          cx="16"
-                          cy="16"
-                          r="13"
+                          cx="20"
+                          cy="20"
+                          r="16"
                           stroke="currentColor"
-                          strokeWidth="2.5"
+                          strokeWidth="3"
                           fill="none"
                           className="text-muted"
                         />
                         <circle
-                          cx="16"
-                          cy="16"
-                          r="13"
+                          cx="20"
+                          cy="20"
+                          r="16"
                           stroke="currentColor"
-                          strokeWidth="2.5"
+                          strokeWidth="3"
                           fill="none"
-                          strokeDasharray={81.68}
-                          strokeDashoffset={81.68 - (81.68 * projectStats.avgProgress) / 100}
+                          strokeDasharray={100.53}
+                          strokeDashoffset={100.53 - (100.53 * projectStats.avgProgress) / 100}
                           className="text-primary transition-all duration-300"
                           strokeLinecap="round"
                         />
                       </svg>
                       <div className="absolute inset-0 flex items-center justify-center">
-                        <span className="text-[9px] font-bold text-foreground">{projectStats.avgProgress}%</span>
+                        <span className="text-[10px] font-bold text-foreground">{projectStats.avgProgress}%</span>
                       </div>
                     </div>
                     <div>
-                      <p className="text-[10px] text-muted-foreground">Progresso</p>
-                      <p className="text-base font-bold text-foreground">{projectStats.avgProgress}%</p>
+                      <p className="text-xs text-muted-foreground">Progresso</p>
+                      <p className="text-lg font-bold text-foreground">{projectStats.avgProgress}%</p>
                     </div>
                   </div>
                 </CardContent>
