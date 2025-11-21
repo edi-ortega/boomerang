@@ -29,23 +29,42 @@ export default function TenantSelectorSection() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      // Buscar os tenants associados ao usuário
-      const { data: userTenants, error } = await supabase
-        .from('user_tenants')
+      // Buscar o user_id na tabela bmr_user
+      const { data: bmrUser, error: userError } = await supabase
+        .from('bmr_user')
+        .select('user_id')
+        .eq('auth_user_id', user.id)
+        .single();
+
+      if (userError || !bmrUser) {
+        console.error('Error loading user:', userError);
+        return;
+      }
+
+      // Buscar os sistemas associados ao usuário através de bmr_user_system_access
+      const { data: userAccess, error: accessError } = await supabase
+        .from('bmr_user_system_access')
         .select(`
-          tenant_id,
-          tenants (
-            id,
-            name,
-            description
+          system_id,
+          bmr_system (
+            system_id,
+            system_name,
+            system_description
           )
         `)
-        .eq('user_id', user.id);
+        .eq('user_id', bmrUser.user_id);
 
-      if (error) throw error;
+      if (accessError) throw accessError;
 
-      const tenantsData = userTenants
-        ?.map(ut => (ut as any).tenants)
+      const tenantsData = userAccess
+        ?.map(access => {
+          const system = (access as any).bmr_system;
+          return system ? {
+            id: system.system_id,
+            name: system.system_name,
+            description: system.system_description
+          } : null;
+        })
         .filter(Boolean) || [];
 
       setTenants(tenantsData);
