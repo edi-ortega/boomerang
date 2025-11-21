@@ -1487,7 +1487,7 @@ export default function ProjectGanttV2() {
 
   return (
     <div className="min-h-screen p-4 md:p-8 bg-background">
-      <div className="w-full overflow-x-auto">
+      <div>
          {/* Header */}
          <motion.div
            initial={{ opacity: 0, y: -20 }}
@@ -1911,7 +1911,7 @@ export default function ProjectGanttV2() {
           </div>
 
           {/* Canvas à Direita */}
-          <div ref={canvasContainerRef} className="overflow-auto bg-gradient-to-br from-gray-50 to-blue-50" style={{ flex: '1 1 auto' }}>
+          <div ref={canvasContainerRef} className="overflow-auto bg-gradient-to-br from-gray-50 to-blue-50" style={{ flex: '1 1 0', minWidth: 0 }}>
             <canvas
               ref={canvasRef}
               className="cursor-default"
