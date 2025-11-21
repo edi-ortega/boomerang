@@ -896,6 +896,9 @@ export default function ProjectGanttV2() {
           const action = isResizing ? 'redimensionada' : 'movida';
           const duration = Math.ceil((currentTask.finish.getTime() - currentTask.start.getTime()) / (1000 * 60 * 60 * 24));
           toast.success(`Task ${action}: ${formatDate(currentTask.start)} - ${formatDate(currentTask.finish)} (${duration} dias)`);
+
+          // Recarregar dados para pegar mudanças dos triggers (progresso do pai, etc)
+          await reloadTasks();
         }
       } catch (error) {
         console.error("❌ Error updating task:", error);
@@ -925,6 +928,9 @@ export default function ProjectGanttV2() {
           console.log('✅ Task progress updated successfully:', updateResult);
 
           toast.success(`Progresso atualizado: ${currentTask.progress}%`);
+
+          // Recarregar dados para pegar mudanças dos triggers (progresso do pai, etc)
+          await reloadTasks();
         }
       } catch (error) {
         console.error("❌ Error updating progress:", error);
