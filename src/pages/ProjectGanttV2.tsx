@@ -1635,11 +1635,11 @@ export default function ProjectGanttV2() {
         </motion.div>
 
         {/* Layout: Sidebar + Canvas */}
-        <div className="flex overflow-hidden" style={{ height: 'calc(100vh - 300px)' }}>
-          {/* Sidebar Esquerda - Lista de Tarefas com Colunas */}
+        <div className="flex" style={{ height: 'calc(100vh - 300px)' }}>
+          {/* Sidebar Esquerda - Lista de Tarefas com Colunas - FIXO */}
           <div
-            className="bg-white border-r border-gray-200 flex-shrink-0 shadow-lg flex flex-col overflow-y-auto overflow-x-hidden"
-            style={{ width: '480px' }}
+            className="bg-white border-r border-gray-200 flex-shrink-0 shadow-lg flex flex-col overflow-y-auto"
+            style={{ width: '480px', overflowX: 'hidden' }}
           >
             {/* Header com colunas */}
             <div
@@ -1917,8 +1917,17 @@ export default function ProjectGanttV2() {
             </div>
           </div>
 
-          {/* Canvas à Direita */}
-          <div ref={canvasContainerRef} className="flex-1 overflow-auto bg-gradient-to-br from-gray-50 to-blue-50" style={{ minWidth: 0, width: '100%' }}>
+          {/* Canvas à Direita - COM SCROLL */}
+          <div
+            ref={canvasContainerRef}
+            className="bg-gradient-to-br from-gray-50 to-blue-50"
+            style={{
+              flex: 1,
+              minWidth: 0,
+              overflow: 'auto',
+              height: '100%'
+            }}
+          >
             <div style={{ display: 'inline-block' }}>
               <canvas
                 ref={canvasRef}
