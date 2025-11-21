@@ -10,6 +10,7 @@ interface Tenant {
   id: string;
   name: string;
   description?: string;
+  isPrimary?: boolean;
 }
 
 export default function TenantSelectorSection() {
@@ -59,13 +60,21 @@ export default function TenantSelectorSection() {
         return {
           id: client.client_id || client.system_id,
           name: client.client_name || client.system_name,
-          description: client.client_description || client.system_description
+          description: client.client_description || client.system_description,
+          isPrimary: client.is_primary_client || false
         };
       }).filter(t => t.id && t.name) || [];
 
       console.log('Tenants data mapped:', tenantsData);
 
       setTenants(tenantsData);
+
+      // Selecionar automaticamente o cliente primário se existir
+      const primaryClient = tenantsData.find(t => t.isPrimary);
+      if (primaryClient && !tenantId) {
+        console.log('Setting primary client as selected:', primaryClient.id);
+        setTenantId(primaryClient.id);
+      }
     } catch (error) {
       console.error('Error loading tenants:', error);
       toast.error('Erro ao carregar empresas');
