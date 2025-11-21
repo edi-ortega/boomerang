@@ -27,7 +27,12 @@ import {
   X,
   CheckCircle2,
   AlertTriangle,
-  AlertCircle
+  AlertCircle,
+  Calendar,
+  Clock,
+  Users,
+  Activity,
+  TrendingUp
 } from "lucide-react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
@@ -1457,11 +1462,57 @@ export default function ProjectGanttV2() {
     const completedTasks = allTasks.filter(t => t.status === 'done' || t.status === 'completed').length;
     const inProgressTasks = allTasks.filter(t => t.status === 'in_progress' || t.status === 'doing').length;
     const blockedTasks = allTasks.filter(t => t.status === 'blocked').length;
-    
-    const avgProgress = totalTasks > 0 
+
+    const avgProgress = totalTasks > 0
       ? Math.round(allTasks.reduce((sum, t) => sum + (t.progress || 0), 0) / totalTasks)
       : 0;
-    
+
+    // 1. Duração total do projeto
+    const tasksWithDates = allTasks.filter(t => t.start_date && t.due_date);
+    let projectStartDate: Date | null = null;
+    let projectEndDate: Date | null = null;
+    let projectDurationDays = 0;
+
+    if (tasksWithDates.length > 0) {
+      const startDates = tasksWithDates.map(t => new Date(t.start_date!));
+      const endDates = tasksWithDates.map(t => new Date(t.due_date!));
+      projectStartDate = new Date(Math.min(...startDates.map(d => d.getTime())));
+      projectEndDate = new Date(Math.max(...endDates.map(d => d.getTime())));
+      projectDurationDays = Math.ceil((projectEndDate.getTime() - projectStartDate.getTime()) / (1000 * 60 * 60 * 24));
+    }
+
+    // 2. Tarefas atrasadas
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const overdueTasks = allTasks.filter(t => {
+      if (!t.due_date || t.status === 'done' || t.status === 'completed') return false;
+      const dueDate = new Date(t.due_date);
+      dueDate.setHours(0, 0, 0, 0);
+      return dueDate < today;
+    }).length;
+
+    // 3. Caminho crítico (tarefas sem folga, ou seja, com dependências)
+    const criticalPathTasks = allTasks.filter(t =>
+      (t.depends_on && t.depends_on.length > 0) ||
+      allTasks.some(other => other.depends_on && other.depends_on.includes(t.id))
+    ).length;
+
+    // 5. Recursos alocados (pessoas únicas)
+    const uniqueAssignees = new Set(allTasks.filter(t => t.assigned_to_email).map(t => t.assigned_to_email));
+    const resourcesAllocated = uniqueAssignees.size;
+
+    // 6. Carga de trabalho (total de dias de todas as tarefas)
+    const totalWorkloadDays = allTasks.reduce((sum, t) => {
+      if (t.start_date && t.due_date) {
+        const days = Math.ceil((new Date(t.due_date).getTime() - new Date(t.start_date).getTime()) / (1000 * 60 * 60 * 24));
+        return sum + (days > 0 ? days : 0);
+      }
+      return sum;
+    }, 0);
+
+    // 8. Taxa de conclusão (tarefas concluídas por dia útil)
+    const completionRate = projectDurationDays > 0 ? (completedTasks / projectDurationDays).toFixed(2) : '0.00';
+
     return {
       totalTasks,
       completedTasks,
@@ -1469,7 +1520,15 @@ export default function ProjectGanttV2() {
       blockedTasks,
       avgProgress,
       activeRisks: risksCount,
-      openIssues: issuesCount
+      openIssues: issuesCount,
+      projectStartDate,
+      projectEndDate,
+      projectDurationDays,
+      overdueTasks,
+      criticalPathTasks,
+      resourcesAllocated,
+      totalWorkloadDays,
+      completionRate
     };
   }, [tasks, risksCount, issuesCount]);
 
@@ -2194,6 +2253,112 @@ export default function ProjectGanttV2() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Footer Bar - Indicadores Adicionais */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="mt-4 border-t border-border pt-4"
+      >
+        <div className="grid grid-cols-1 md:grid-cols-6 gap-3">
+          {/* 1. Duração Total do Projeto */}
+          <Card className="glass-effect border-border/50">
+            <CardContent className="p-3">
+              <div className="flex items-center gap-2">
+                <div className="p-1.5 rounded bg-blue-100">
+                  <Calendar className="w-4 h-4 text-blue-600" />
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Duração</p>
+                  <p className="text-lg font-bold text-blue-600">
+                    {projectStats.projectDurationDays > 0 ? `${projectStats.projectDurationDays} dias` : 'N/A'}
+                  </p>
+                </div>
+              </div>
+              {projectStats.projectStartDate && projectStats.projectEndDate && (
+                <p className="text-[10px] text-muted-foreground mt-1">
+                  {projectStats.projectStartDate.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })} → {projectStats.projectEndDate.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })}
+                </p>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* 2. Tarefas Atrasadas */}
+          <Card className="glass-effect border-border/50">
+            <CardContent className="p-3">
+              <div className="flex items-center gap-2">
+                <div className="p-1.5 rounded bg-red-100">
+                  <Clock className="w-4 h-4 text-red-600" />
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Atrasadas</p>
+                  <p className="text-lg font-bold text-red-600">{projectStats.overdueTasks}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* 3. Caminho Crítico */}
+          <Card className="glass-effect border-border/50">
+            <CardContent className="p-3">
+              <div className="flex items-center gap-2">
+                <div className="p-1.5 rounded bg-purple-100">
+                  <Target className="w-4 h-4 text-purple-600" />
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">C. Crítico</p>
+                  <p className="text-lg font-bold text-purple-600">{projectStats.criticalPathTasks}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* 5. Recursos Alocados */}
+          <Card className="glass-effect border-border/50">
+            <CardContent className="p-3">
+              <div className="flex items-center gap-2">
+                <div className="p-1.5 rounded bg-green-100">
+                  <Users className="w-4 h-4 text-green-600" />
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Recursos</p>
+                  <p className="text-lg font-bold text-green-600">{projectStats.resourcesAllocated}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* 6. Carga de Trabalho */}
+          <Card className="glass-effect border-border/50">
+            <CardContent className="p-3">
+              <div className="flex items-center gap-2">
+                <div className="p-1.5 rounded bg-amber-100">
+                  <Activity className="w-4 h-4 text-amber-600" />
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Carga</p>
+                  <p className="text-lg font-bold text-amber-600">{projectStats.totalWorkloadDays} dias</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* 8. Taxa de Conclusão */}
+          <Card className="glass-effect border-border/50">
+            <CardContent className="p-3">
+              <div className="flex items-center gap-2">
+                <div className="p-1.5 rounded bg-teal-100">
+                  <TrendingUp className="w-4 h-4 text-teal-600" />
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Velocidade</p>
+                  <p className="text-lg font-bold text-teal-600">{projectStats.completionRate}/dia</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </motion.div>
 
       <ConfirmDialog />
     </div>
