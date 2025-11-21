@@ -989,13 +989,12 @@ export default function ProjectGanttV2() {
 
     const totalDays = Math.ceil((maxDate.getTime() - minDate.getTime()) / (1000 * 60 * 60 * 24));
     const calculatedWidth = totalDays * GANTT_CONFIG.dayWidth + 32; // 32px de padding lateral
-    const canvasWidth = Math.max(calculatedWidth, containerWidth || 0); // não força largura maior que o necessário
     const canvasHeight = visibleTasks.length * GANTT_CONFIG.rowHeight + GANTT_CONFIG.headerHeight;
 
-    canvas.width = canvasWidth;
+    canvas.width = calculatedWidth;
     canvas.height = canvasHeight;
 
-    ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+    ctx.clearRect(0, 0, calculatedWidth, canvasHeight);
 
     drawTimelineHeader(ctx, minDate, totalDays);
     drawGrid(ctx, totalDays, visibleTasks.length);
