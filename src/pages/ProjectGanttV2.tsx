@@ -764,11 +764,15 @@ export default function ProjectGanttV2() {
 
   const handleCanvasMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
     const canvas = canvasRef.current;
-    if (!canvas) return;
+    const container = canvasContainerRef.current;
+    if (!canvas || !container) return;
 
     const rect = canvas.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
+    const containerRect = container.getBoundingClientRect();
+
+    // Considerar o scroll do container
+    const x = e.clientX - containerRect.left + container.scrollLeft;
+    const y = e.clientY - containerRect.top + container.scrollTop;
 
     const visibleTasks = getVisibleTasks();
     if (visibleTasks.length === 0) return;
@@ -783,6 +787,8 @@ export default function ProjectGanttV2() {
 
     console.log('🖱️ Mouse Down:', {
       x, y,
+      scrollLeft: container.scrollLeft,
+      scrollTop: container.scrollTop,
       taskInfo: taskInfo ? {
         title: taskInfo.task.title,
         isMilestone: taskInfo.task.is_milestone,
@@ -815,11 +821,14 @@ export default function ProjectGanttV2() {
 
   const handleCanvasMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
     const canvas = canvasRef.current;
-    if (!canvas) return;
-    
-    const rect = canvas.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
+    const container = canvasContainerRef.current;
+    if (!canvas || !container) return;
+
+    const containerRect = container.getBoundingClientRect();
+
+    // Considerar o scroll do container
+    const x = e.clientX - containerRect.left + container.scrollLeft;
+    const y = e.clientY - containerRect.top + container.scrollTop;
     
     if (isResizing && draggedTask && resizeStartDate && resizeEdge) {
       // Resize da barra
