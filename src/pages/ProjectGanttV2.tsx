@@ -1207,9 +1207,18 @@ export default function ProjectGanttV2() {
     const x = taskStartDays * GANTT_CONFIG.dayWidth + 8;
     const width = taskDurationDays * GANTT_CONFIG.dayWidth - 16;
 
-    // Definir cor baseado no status e tipo
+    // Verificar se está no caminho crítico
+    const cpmTask = cpmResult?.tasks.get(task.id);
+    const isCritical = showCriticalPath && cpmTask?.isCritical;
+    const isNearCritical = showCriticalPath && cpmTask?.totalFloat && cpmTask.totalFloat > 0 && cpmTask.totalFloat <= 2;
+
+    // Definir cor baseado no status, tipo e criticidade
     let barColor = COLORS.primary;
-    if (task.status === 'done') {
+    if (isCritical) {
+      barColor = '#ef4444'; // Vermelho para tarefas críticas
+    } else if (isNearCritical) {
+      barColor = '#f59e0b'; // Laranja para quase críticas
+    } else if (task.status === 'done') {
       barColor = COLORS.success;
     } else if (task.status === 'blocked') {
       barColor = COLORS.danger;
@@ -1317,6 +1326,15 @@ export default function ProjectGanttV2() {
       ctx.fillRect(x + width - handleWidth - 4, handleY, handleWidth, handleHeight);
     }
 
+    // Ícone de criticidade
+    if (isCritical && width > 40) {
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 14px Arial';
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('⚠', x + 6, y + GANTT_CONFIG.barHeight / 2);
+    }
+
     // Texto: título à esquerda, percentual à direita
     ctx.fillStyle = '#ffffff';
     ctx.textAlign = 'left';
@@ -1326,7 +1344,7 @@ export default function ProjectGanttV2() {
       ctx.font = 'bold 12px Arial';
       let displayTitle = task.title;
       let titleWidth = ctx.measureText(displayTitle).width;
-      const maxTitleWidth = width - 70;
+      const maxTitleWidth = width - 70 - (isCritical ? 20 : 0);
 
       while (titleWidth > maxTitleWidth && displayTitle.length > 3) {
         displayTitle = displayTitle.slice(0, -1);
@@ -1336,7 +1354,7 @@ export default function ProjectGanttV2() {
         displayTitle += '...';
       }
 
-      ctx.fillText(displayTitle, x + 10, y + GANTT_CONFIG.barHeight / 2);
+      ctx.fillText(displayTitle, x + (isCritical ? 24 : 10), y + GANTT_CONFIG.barHeight / 2);
 
       if (task.progress > 0) {
         ctx.textAlign = 'right';
@@ -1349,6 +1367,19 @@ export default function ProjectGanttV2() {
         ctx.font = 'bold 12px Arial';
         ctx.fillText(`${task.progress}%`, x + width / 2, y + GANTT_CONFIG.barHeight / 2);
       }
+    }
+
+    // Indicador de folga abaixo da barra
+    if (showCriticalPath && cpmTask && !isCritical && cpmTask.totalFloat !== undefined) {
+      ctx.fillStyle = getFloatColor(cpmTask.totalFloat);
+      ctx.font = '9px Arial';
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'top';
+      ctx.fillText(
+        `Folga: ${formatFloat(cpmTask.totalFloat)}`,
+        x,
+        y + GANTT_CONFIG.barHeight + 2
+      );
     }
   };
 
@@ -1758,6 +1789,49 @@ export default function ProjectGanttV2() {
                   </div>
                 </CardContent>
               </Card>
+          </div>
+
+          {/* Botões de Ação e Análise CPM */}
+          <div className="flex flex-wrap gap-2 items-center w-full">
+            <Button
+              variant={showCriticalPath ? "default" : "outline"}
+              onClick={() => setShowCriticalPath(!showCriticalPath)}
+              className="gap-2"
+            >
+              <TrendingUp className="w-4 h-4" />
+              {showCriticalPath ? 'Ocultar' : 'Mostrar'} Caminho Crítico
+            </Button>
+
+            {showCriticalPath && cpmResult && (
+              <Card className="glass-effect border-orange-500/50 flex-1">
+                <CardContent className="p-3">
+                  <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-2">
+                      <div className="p-1.5 rounded bg-orange-100">
+                        <TrendingUp className="w-4 h-4 text-orange-600" />
+                      </div>
+                      <div>
+                        <p className="text-xs text-muted-foreground">Tarefas Críticas</p>
+                        <p className="text-lg font-bold text-orange-600">
+                          {cpmResult.criticalPath.length}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="p-1.5 rounded bg-blue-100">
+                        <Clock className="w-4 h-4 text-blue-600" />
+                      </div>
+                      <div>
+                        <p className="text-xs text-muted-foreground">Duração do Projeto</p>
+                        <p className="text-lg font-bold text-blue-600">
+                          {cpmResult.projectDuration} dias
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
           </div>
         </motion.div>
 
@@ -2415,6 +2489,152 @@ export default function ProjectGanttV2() {
           </Card>
         </div>
       </motion.div>
+
+      {/* Painel de Análise do Caminho Crítico */}
+      {showCriticalPath && cpmResult && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mt-4"
+        >
+          <Card className="glass-effect border-orange-500/50">
+            <CardContent className="p-6">
+              <div className="space-y-6">
+                {/* Header */}
+                <div className="flex items-center gap-3 border-b border-border pb-4">
+                  <div className="p-2 rounded-lg bg-orange-100">
+                    <TrendingUp className="w-6 h-6 text-orange-600" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold text-foreground">Análise do Caminho Crítico</h3>
+                    <p className="text-sm text-muted-foreground">Critical Path Method (CPM) - PMI PMBOK</p>
+                  </div>
+                </div>
+
+                {/* Métricas Principais */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-4 rounded-lg border border-blue-200">
+                    <Label className="text-sm font-medium text-blue-800">Duração do Projeto</Label>
+                    <p className="text-3xl font-bold text-blue-600 mt-1">
+                      {cpmResult.projectDuration} dias
+                    </p>
+                    <p className="text-xs text-blue-600 mt-1">
+                      Conclusão: {new Date(cpmResult.projectEndDate).toLocaleDateString('pt-BR')}
+                    </p>
+                  </div>
+
+                  <div className="bg-gradient-to-br from-orange-50 to-orange-100 p-4 rounded-lg border border-orange-200">
+                    <Label className="text-sm font-medium text-orange-800">Tarefas Críticas</Label>
+                    <p className="text-3xl font-bold text-orange-600 mt-1">
+                      {cpmResult.criticalPath.length}
+                    </p>
+                    <p className="text-xs text-orange-600 mt-1">
+                      Folga total = 0 dias
+                    </p>
+                  </div>
+
+                  <div className="bg-gradient-to-br from-green-50 to-green-100 p-4 rounded-lg border border-green-200">
+                    <Label className="text-sm font-medium text-green-800">Tarefas com Folga</Label>
+                    <p className="text-3xl font-bold text-green-600 mt-1">
+                      {Array.from(cpmResult.tasks.values()).filter(t => !t.isCritical).length}
+                    </p>
+                    <p className="text-xs text-green-600 mt-1">
+                      Podem ter flexibilidade
+                    </p>
+                  </div>
+                </div>
+
+                {/* Lista de Tarefas Críticas */}
+                <div>
+                  <Label className="text-base font-semibold text-foreground mb-3 block">
+                    Tarefas no Caminho Crítico
+                  </Label>
+                  <div className="flex flex-wrap gap-2">
+                    {sortCriticalPath(cpmResult.criticalPath, cpmResult.tasks).map(taskId => {
+                      const cpmTask = cpmResult.tasks.get(taskId);
+                      return (
+                        <div
+                          key={taskId}
+                          className="bg-red-50 border border-red-200 rounded-lg px-3 py-2 hover:bg-red-100 transition-colors cursor-pointer"
+                          onClick={() => {
+                            const task = getAllTasksFlat(tasks).find(t => t.id === taskId);
+                            if (task) setSelectedTask(task);
+                          }}
+                        >
+                          <div className="flex items-center gap-2">
+                            <span className="text-lg">⚠</span>
+                            <div>
+                              <p className="text-sm font-semibold text-red-900">{cpmTask?.title}</p>
+                              <p className="text-xs text-red-600">
+                                {cpmTask?.earlyStart && new Date(cpmTask.earlyStart).toLocaleDateString('pt-BR')}
+                                {' → '}
+                                {cpmTask?.earlyFinish && new Date(cpmTask.earlyFinish).toLocaleDateString('pt-BR')}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Legenda */}
+                <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                  <Label className="text-sm font-semibold text-foreground mb-3 block">
+                    Legenda de Criticidade
+                  </Label>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    <div className="flex items-center gap-2">
+                      <div className="w-6 h-6 rounded" style={{ backgroundColor: '#ef4444' }}></div>
+                      <div>
+                        <p className="text-xs font-medium text-foreground">Crítico</p>
+                        <p className="text-xs text-muted-foreground">Folga = 0</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-6 h-6 rounded" style={{ backgroundColor: '#f59e0b' }}></div>
+                      <div>
+                        <p className="text-xs font-medium text-foreground">Quase Crítico</p>
+                        <p className="text-xs text-muted-foreground">Folga ≤ 2 dias</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-6 h-6 rounded" style={{ backgroundColor: '#eab308' }}></div>
+                      <div>
+                        <p className="text-xs font-medium text-foreground">Atenção</p>
+                        <p className="text-xs text-muted-foreground">Folga ≤ 5 dias</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-6 h-6 rounded" style={{ backgroundColor: '#10b981' }}></div>
+                      <div>
+                        <p className="text-xs font-medium text-foreground">Confortável</p>
+                        <p className="text-xs text-muted-foreground">Folga &gt; 5 dias</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Dicas */}
+                <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                  <div className="flex gap-3">
+                    <Activity className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-sm font-semibold text-blue-900 mb-2">Recomendações PMI</p>
+                      <ul className="text-xs text-blue-700 space-y-1">
+                        <li>• Monitore tarefas críticas diariamente - qualquer atraso impacta o projeto</li>
+                        <li>• Aloque seus melhores recursos nas tarefas críticas</li>
+                        <li>• Use tarefas com folga como buffer de contingência</li>
+                        <li>• Considere fast-tracking ou crashing para tarefas críticas se necessário</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+      )}
 
       <ConfirmDialog />
     </div>
