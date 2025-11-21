@@ -39,12 +39,12 @@ BEGIN
   -- Calcular média de progresso dos filhos
   SELECT COALESCE(AVG(progress), 0)
   INTO v_avg_progress
-  FROM tasks
+  FROM prj_task
   WHERE parent_id = v_parent_id
   AND deleted_at IS NULL;
 
   -- Atualizar progresso do pai
-  UPDATE tasks
+  UPDATE prj_task
   SET progress = ROUND(v_avg_progress)
   WHERE id = v_parent_id;
 
@@ -89,7 +89,7 @@ BEGIN
   INTO
     v_min_start_date,
     v_max_due_date
-  FROM tasks
+  FROM prj_task
   WHERE parent_id = v_parent_id
   AND deleted_at IS NULL
   AND start_date IS NOT NULL
@@ -97,7 +97,7 @@ BEGIN
 
   -- Atualizar datas do pai se encontrou datas válidas
   IF v_min_start_date IS NOT NULL AND v_max_due_date IS NOT NULL THEN
-    UPDATE tasks
+    UPDATE prj_task
     SET
       start_date = v_min_start_date,
       due_date = v_max_due_date
@@ -115,30 +115,30 @@ $$ LANGUAGE plpgsql;
 -- ========================================
 -- REMOVER TRIGGERS ANTIGOS (se existirem)
 -- ========================================
-DROP TRIGGER IF EXISTS trigger_update_parent_progress_on_insert ON tasks;
-DROP TRIGGER IF EXISTS trigger_update_parent_progress_on_update ON tasks;
-DROP TRIGGER IF EXISTS trigger_update_parent_progress_on_delete ON tasks;
-DROP TRIGGER IF EXISTS trigger_update_parent_dates_on_insert ON tasks;
-DROP TRIGGER IF EXISTS trigger_update_parent_dates_on_update ON tasks;
-DROP TRIGGER IF EXISTS trigger_update_parent_dates_on_delete ON tasks;
+DROP TRIGGER IF EXISTS trigger_update_parent_progress_on_insert ON prj_task;
+DROP TRIGGER IF EXISTS trigger_update_parent_progress_on_update ON prj_task;
+DROP TRIGGER IF EXISTS trigger_update_parent_progress_on_delete ON prj_task;
+DROP TRIGGER IF EXISTS trigger_update_parent_dates_on_insert ON prj_task;
+DROP TRIGGER IF EXISTS trigger_update_parent_dates_on_update ON prj_task;
+DROP TRIGGER IF EXISTS trigger_update_parent_dates_on_delete ON prj_task;
 
 -- ========================================
 -- CRIAR TRIGGERS PARA PROGRESSO
 -- ========================================
 CREATE TRIGGER trigger_update_parent_progress_on_insert
-  AFTER INSERT ON tasks
+  AFTER INSERT ON prj_task
   FOR EACH ROW
   WHEN (NEW.parent_id IS NOT NULL)
   EXECUTE FUNCTION update_parent_progress();
 
 CREATE TRIGGER trigger_update_parent_progress_on_update
-  AFTER UPDATE OF progress ON tasks
+  AFTER UPDATE OF progress ON prj_task
   FOR EACH ROW
   WHEN (NEW.parent_id IS NOT NULL AND NEW.progress IS DISTINCT FROM OLD.progress)
   EXECUTE FUNCTION update_parent_progress();
 
 CREATE TRIGGER trigger_update_parent_progress_on_delete
-  AFTER DELETE ON tasks
+  AFTER DELETE ON prj_task
   FOR EACH ROW
   WHEN (OLD.parent_id IS NOT NULL)
   EXECUTE FUNCTION update_parent_progress();
@@ -147,19 +147,19 @@ CREATE TRIGGER trigger_update_parent_progress_on_delete
 -- CRIAR TRIGGERS PARA DATAS
 -- ========================================
 CREATE TRIGGER trigger_update_parent_dates_on_insert
-  AFTER INSERT ON tasks
+  AFTER INSERT ON prj_task
   FOR EACH ROW
   WHEN (NEW.parent_id IS NOT NULL AND NEW.start_date IS NOT NULL AND NEW.due_date IS NOT NULL)
   EXECUTE FUNCTION update_parent_dates();
 
 CREATE TRIGGER trigger_update_parent_dates_on_update
-  AFTER UPDATE OF start_date, due_date ON tasks
+  AFTER UPDATE OF start_date, due_date ON prj_task
   FOR EACH ROW
   WHEN (NEW.parent_id IS NOT NULL AND (NEW.start_date IS DISTINCT FROM OLD.start_date OR NEW.due_date IS DISTINCT FROM OLD.due_date))
   EXECUTE FUNCTION update_parent_dates();
 
 CREATE TRIGGER trigger_update_parent_dates_on_delete
-  AFTER DELETE ON tasks
+  AFTER DELETE ON prj_task
   FOR EACH ROW
   WHEN (OLD.parent_id IS NOT NULL)
   EXECUTE FUNCTION update_parent_dates();
@@ -193,12 +193,12 @@ Após criar os triggers, teste alterando o progresso ou datas de uma task filha:
 
 ```sql
 -- Exemplo: Atualizar progresso de uma task filha
-UPDATE tasks
+UPDATE prj_task
 SET progress = 75
 WHERE id = 'id-da-task-filha';
 
 -- Verificar se o pai foi atualizado
 SELECT id, title, progress
-FROM tasks
+FROM prj_task
 WHERE id = 'id-do-pai';
 ```
