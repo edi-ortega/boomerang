@@ -15,6 +15,8 @@ import WorkCalendarManagementSection from "@/components/settings/WorkCalendarMan
 import CalendarManagementSection from "@/components/settings/CalendarManagementSection";
 import DataImportSection from "@/components/settings/DataImportSection";
 import PermissionsManagementSection from "@/components/settings/PermissionsManagementSection";
+import TenantSelectorSection from "@/components/settings/TenantSelectorSection";
+import ThemeSelectorSection from "@/components/settings/ThemeSelectorSection";
 import { useToast } from "@/components/ui/use-toast";
 import { useConfirm } from "@/hooks/use-confirm";
 
@@ -671,6 +673,46 @@ export default function Settings() {
                     )}
                   </Button>
                 </div>
+              </CardContent>
+            </Card>
+
+            {/* Seção de Seleção de Empresa */}
+            <Card className="glass-effect border-border mt-6">
+              <CardHeader>
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-blue-500/20 rounded-lg flex items-center justify-center">
+                    <Users className="w-5 h-5 text-blue-500" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-foreground">Empresa</CardTitle>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Selecione a empresa que deseja visualizar
+                    </p>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <TenantSelectorSection />
+              </CardContent>
+            </Card>
+
+            {/* Seção de Seleção de Tema */}
+            <Card className="glass-effect border-border mt-6">
+              <CardHeader>
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-purple-500/20 rounded-lg flex items-center justify-center">
+                    <Palette className="w-5 h-5 text-purple-500" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-foreground">Aparência</CardTitle>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Personalize o tema de cores do sistema
+                    </p>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <ThemeSelectorSection />
               </CardContent>
             </Card>
           </TabsContent>

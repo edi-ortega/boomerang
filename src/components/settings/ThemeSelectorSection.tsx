@@ -37,14 +37,7 @@ export default function ThemeSelectorSection() {
   };
 
   return (
-    <div className="space-y-4">
-      <div>
-        <h2 className="text-2xl font-bold text-foreground mb-2">Aparência</h2>
-        <p className="text-muted-foreground">
-          Escolha o tema de cores que mais combina com você. A mudança é aplicada instantaneamente.
-        </p>
-      </div>
-
+    <div>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {themes.map((themeOption, index) => {
           const Icon = themeOption.icon;

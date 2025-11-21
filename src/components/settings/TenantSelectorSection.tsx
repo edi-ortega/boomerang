@@ -68,30 +68,13 @@ export default function TenantSelectorSection() {
   };
 
   if (loading) {
-    return (
-      <Card>
-        <CardContent className="p-6">
-          <p className="text-muted-foreground">Carregando empresas...</p>
-        </CardContent>
-      </Card>
-    );
+    return <p className="text-muted-foreground">Carregando empresas...</p>;
   }
 
   return (
-    <div className="space-y-4">
-      <div>
-        <h2 className="text-2xl font-bold text-foreground mb-2">Selecionar Empresa</h2>
-        <p className="text-muted-foreground">
-          Escolha a empresa que deseja visualizar. Seus dados serão filtrados de acordo com a empresa selecionada.
-        </p>
-      </div>
-
+    <div>
       {tenants.length === 0 ? (
-        <Card>
-          <CardContent className="p-6">
-            <p className="text-muted-foreground">Nenhuma empresa encontrada.</p>
-          </CardContent>
-        </Card>
+        <p className="text-muted-foreground">Nenhuma empresa encontrada.</p>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {tenants.map((tenant, index) => (
