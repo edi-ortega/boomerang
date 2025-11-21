@@ -971,6 +971,14 @@ export default function ProjectGanttV2() {
     const calculatedWidth = totalDays * GANTT_CONFIG.dayWidth + 32; // 32px de padding lateral
     const canvasHeight = visibleTasks.length * GANTT_CONFIG.rowHeight + GANTT_CONFIG.headerHeight;
 
+    console.log('GANTT DEBUG:', {
+      totalDays,
+      dayWidth: GANTT_CONFIG.dayWidth,
+      calculatedWidth,
+      minDate: minDate.toISOString(),
+      maxDate: maxDate.toISOString()
+    });
+
     canvas.width = calculatedWidth;
     canvas.height = canvasHeight;
 
@@ -1915,7 +1923,7 @@ export default function ProjectGanttV2() {
             <canvas
               ref={canvasRef}
               className="cursor-default"
-              style={{ display: 'block' }}
+              style={{ display: 'block', width: 'auto', height: 'auto', maxWidth: 'none' }}
               onMouseDown={handleCanvasMouseDown}
               onMouseMove={handleCanvasMouseMove}
               onMouseUp={handleCanvasMouseUp}
