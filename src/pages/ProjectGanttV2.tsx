@@ -1635,11 +1635,11 @@ export default function ProjectGanttV2() {
         </motion.div>
 
         {/* Layout: Sidebar + Canvas */}
-        <div className="flex" style={{ height: 'calc(100vh - 300px)' }}>
+        <div className="flex" style={{ height: 'calc(100vh - 300px)', overflow: 'hidden' }}>
           {/* Sidebar Esquerda - Lista de Tarefas com Colunas - FIXO */}
           <div
-            className="bg-white border-r border-gray-200 flex-shrink-0 shadow-lg flex flex-col overflow-y-auto"
-            style={{ width: '480px', overflowX: 'hidden' }}
+            className="bg-white border-r border-gray-200 flex-shrink-0 shadow-lg flex flex-col"
+            style={{ width: '480px', overflowY: 'auto', overflowX: 'hidden' }}
           >
             {/* Header com colunas */}
             <div
@@ -1917,28 +1917,26 @@ export default function ProjectGanttV2() {
             </div>
           </div>
 
-          {/* Canvas à Direita - COM SCROLL */}
+          {/* Canvas à Direita - COM SCROLL ISOLADO */}
           <div
             ref={canvasContainerRef}
             className="bg-gradient-to-br from-gray-50 to-blue-50"
             style={{
               flex: 1,
-              minWidth: 0,
+              width: 0,
               overflow: 'auto',
-              height: '100%'
+              position: 'relative'
             }}
           >
-            <div style={{ display: 'inline-block' }}>
-              <canvas
-                ref={canvasRef}
-                className="cursor-default"
-                style={{ display: 'block' }}
-                onMouseDown={handleCanvasMouseDown}
-                onMouseMove={handleCanvasMouseMove}
-                onMouseUp={handleCanvasMouseUp}
-                onMouseLeave={handleCanvasMouseLeave}
-              />
-            </div>
+            <canvas
+              ref={canvasRef}
+              className="cursor-default"
+              style={{ display: 'block' }}
+              onMouseDown={handleCanvasMouseDown}
+              onMouseMove={handleCanvasMouseMove}
+              onMouseUp={handleCanvasMouseUp}
+              onMouseLeave={handleCanvasMouseLeave}
+            />
           </div>
         </div>
       </div>
