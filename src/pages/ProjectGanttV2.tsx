@@ -765,21 +765,32 @@ export default function ProjectGanttV2() {
   const handleCanvasMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    
+
     const rect = canvas.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
-    
+
     const visibleTasks = getVisibleTasks();
     if (visibleTasks.length === 0) return;
-    
+
     let minDate = new Date();
     visibleTasks.forEach(task => {
       if (task.start && task.start < minDate) minDate = task.start;
     });
     minDate = new Date(minDate.getFullYear(), minDate.getMonth(), 1);
-    
+
     const taskInfo = getTaskAtPosition(x, y, minDate);
+
+    console.log('🖱️ Mouse Down:', {
+      x, y,
+      taskInfo: taskInfo ? {
+        title: taskInfo.task.title,
+        isMilestone: taskInfo.task.is_milestone,
+        status: taskInfo.task.status,
+        edge: taskInfo.edge
+      } : null
+    });
+
     if (taskInfo && taskInfo.task.status !== 'done') {
       if (taskInfo.edge) {
         // Iniciar resize
@@ -791,6 +802,7 @@ export default function ProjectGanttV2() {
         canvas.style.cursor = 'ew-resize';
       } else {
         // Iniciar drag normal
+        console.log('✅ Iniciando drag de:', taskInfo.task.title);
         setIsDragging(true);
         setDraggedTask(taskInfo.task);
         setDragStartX(x);
