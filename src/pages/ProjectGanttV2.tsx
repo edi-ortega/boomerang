@@ -1638,7 +1638,7 @@ export default function ProjectGanttV2() {
         <div className="flex overflow-hidden" style={{ height: 'calc(100vh - 300px)' }}>
           {/* Sidebar Esquerda - Lista de Tarefas com Colunas */}
           <div
-            className="bg-white border-r border-gray-200 flex-shrink-0 shadow-lg flex flex-col overflow-y-auto"
+            className="bg-white border-r border-gray-200 flex-shrink-0 shadow-lg flex flex-col overflow-y-auto overflow-x-hidden"
             style={{ width: '480px' }}
           >
             {/* Header com colunas */}
