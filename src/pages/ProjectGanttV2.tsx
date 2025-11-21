@@ -154,6 +154,9 @@ export default function ProjectGanttV2() {
   const [isResizing, setIsResizing] = useState(false);
   const [resizeEdge, setResizeEdge] = useState<'left' | 'right' | null>(null);
   const [resizeStartDate, setResizeStartDate] = useState<Date | null>(null);
+
+  // Estado para debug
+  const [debugInfo, setDebugInfo] = useState<any>(null);
   
   // Estados para drag na lista de tarefas
   const [draggedTaskId, setDraggedTaskId] = useState<string | null>(null);
@@ -907,9 +910,21 @@ export default function ProjectGanttV2() {
       minDate = new Date(minDate.getFullYear(), minDate.getMonth(), 1);
       
       const taskInfo = getTaskAtPosition(x, y, minDate);
-      
+
+      // Atualizar debug info
+      setDebugInfo({
+        mouseX: Math.round(x),
+        mouseY: Math.round(y),
+        scrollLeft: container.scrollLeft,
+        scrollTop: container.scrollTop,
+        taskDetected: taskInfo ? taskInfo.task.title : 'nenhuma',
+        edge: taskInfo?.edge || 'centro',
+        status: taskInfo?.task.status || '-'
+      });
+
       if (taskInfo && taskInfo.task.status !== 'done') {
         if (taskInfo.edge) {
+          console.log('🎯 Cursor ew-resize na borda:', taskInfo.edge, 'de', taskInfo.task.title);
           canvas.style.cursor = 'ew-resize';
         } else {
           canvas.style.cursor = 'grab';
@@ -1533,6 +1548,19 @@ export default function ProjectGanttV2() {
 
   return (
     <div className="min-h-screen p-4 md:p-8 bg-background">
+      {/* Debug Panel */}
+      {debugInfo && (
+        <div className="fixed top-4 right-4 bg-black/90 text-white p-3 rounded-lg text-xs font-mono z-50">
+          <div className="font-bold mb-2">🔧 Debug Info</div>
+          <div>Mouse X: {debugInfo.mouseX}</div>
+          <div>Mouse Y: {debugInfo.mouseY}</div>
+          <div>Scroll X: {debugInfo.scrollLeft}</div>
+          <div>Scroll Y: {debugInfo.scrollTop}</div>
+          <div>Task: {debugInfo.taskDetected}</div>
+          <div className="font-bold text-yellow-400">Edge: {debugInfo.edge}</div>
+          <div>Status: {debugInfo.status}</div>
+        </div>
+      )}
       <div>
          {/* Header e Cards - FORA do container de scroll */}
          <motion.div
