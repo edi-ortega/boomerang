@@ -732,33 +732,33 @@ export default function ProjectGanttV2() {
   const getTaskAtPosition = (x: number, y: number, minDate: Date): { task: Task, taskIndex: number, edge?: 'left' | 'right' | null } | null => {
     const visibleTasks = getVisibleTasks();
     const taskIndex = Math.floor((y - GANTT_CONFIG.headerHeight) / GANTT_CONFIG.rowHeight);
-    
+
     if (taskIndex < 0 || taskIndex >= visibleTasks.length) return null;
-    
+
     const task = visibleTasks[taskIndex];
     if (!task.start || !task.finish) return null;
-    
+
     const taskStartDays = Math.floor((task.start.getTime() - minDate.getTime()) / (1000 * 60 * 60 * 24));
     const taskDurationDays = Math.ceil((task.finish.getTime() - task.start.getTime()) / (1000 * 60 * 60 * 24)) || 1;
-    
+
     const barX = taskStartDays * GANTT_CONFIG.dayWidth + 8;
     const barWidth = taskDurationDays * GANTT_CONFIG.dayWidth - 16;
     const barY = GANTT_CONFIG.headerHeight + taskIndex * GANTT_CONFIG.rowHeight + (GANTT_CONFIG.rowHeight - GANTT_CONFIG.barHeight) / 2;
-    
+
     if (x >= barX && x <= barX + barWidth && y >= barY && y <= barY + GANTT_CONFIG.barHeight) {
-      // Detectar se está nas extremidades (10px de margem)
-      const edgeThreshold = 10;
+      // Detectar se está nas extremidades (15px de margem para facilitar o resize)
+      const edgeThreshold = 15;
       let edge: 'left' | 'right' | null = null;
-      
+
       if (x >= barX && x <= barX + edgeThreshold) {
         edge = 'left';
       } else if (x >= barX + barWidth - edgeThreshold && x <= barX + barWidth) {
         edge = 'right';
       }
-      
+
       return { task, taskIndex, edge };
     }
-    
+
     return null;
   };
 
@@ -794,6 +794,7 @@ export default function ProjectGanttV2() {
     if (taskInfo && taskInfo.task.status !== 'done') {
       if (taskInfo.edge) {
         // Iniciar resize
+        console.log('📏 Iniciando resize de:', taskInfo.task.title, 'borda:', taskInfo.edge);
         setIsResizing(true);
         setResizeEdge(taskInfo.edge);
         setDraggedTask(taskInfo.task);
@@ -916,19 +917,21 @@ export default function ProjectGanttV2() {
       if (canvas) {
         canvas.style.cursor = 'default';
       }
-      
+
       try {
         const currentTask = tasks.flatMap(function flatten(t: Task): Task[] {
           return [t, ...(t.children || []).flatMap(flatten)];
         }).find(t => t.id === draggedTask.id);
-        
+
         if (currentTask && currentTask.start && currentTask.finish) {
           await base44.entities.Task.update(draggedTask.id, {
             start_date: currentTask.start.toISOString().split('T')[0],
             due_date: currentTask.finish.toISOString().split('T')[0]
           });
-          
-          toast.success(`Datas atualizadas: ${formatDate(currentTask.start)} - ${formatDate(currentTask.finish)}`);
+
+          const action = isResizing ? 'redimensionada' : 'movida';
+          const duration = Math.ceil((currentTask.finish.getTime() - currentTask.start.getTime()) / (1000 * 60 * 60 * 24));
+          toast.success(`Task ${action}: ${formatDate(currentTask.start)} - ${formatDate(currentTask.finish)} (${duration} dias)`);
           // Não recarregar para manter a posição da tarefa
         }
       } catch (error) {
@@ -936,7 +939,7 @@ export default function ProjectGanttV2() {
         toast.error("Erro ao atualizar datas");
       }
     }
-    
+
     setIsDragging(false);
     setIsResizing(false);
     setResizeEdge(null);
@@ -1253,6 +1256,20 @@ export default function ProjectGanttV2() {
       ctx.quadraticCurveTo(x, y, x + radius, y);
       ctx.closePath();
       ctx.fill();
+    }
+
+    // Indicadores de resize nas bordas (handles) - apenas se não estiver concluída
+    if (task.status !== 'done' && width > 40) {
+      const handleWidth = 4;
+      const handleHeight = GANTT_CONFIG.barHeight - 8;
+      const handleY = y + 4;
+
+      // Handle esquerdo
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+      ctx.fillRect(x + 4, handleY, handleWidth, handleHeight);
+
+      // Handle direito
+      ctx.fillRect(x + width - handleWidth - 4, handleY, handleWidth, handleHeight);
     }
 
     // Texto: título à esquerda, percentual à direita
