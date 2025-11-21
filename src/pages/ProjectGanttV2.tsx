@@ -1941,6 +1941,13 @@ export default function ProjectGanttV2() {
                 const assignedName = assignedUser?.name || task.assigned_to_email || 'Não atribuído';
                 const initial = assignedName !== 'Não atribuído' ? assignedName.charAt(0).toUpperCase() : '?';
 
+                // Verificar criticidade da tarefa
+                const cpmTask = cpmResult?.tasks.get(task.id);
+                const isCritical = showCriticalPath && cpmTask?.isCritical;
+                const isNearCritical = showCriticalPath && cpmTask?.totalFloat && cpmTask.totalFloat > 0 && cpmTask.totalFloat <= 2;
+                const hasModerateFloat = showCriticalPath && cpmTask?.totalFloat && cpmTask.totalFloat > 2 && cpmTask.totalFloat <= 5;
+                const criticalityColor = isCritical ? '#ef4444' : isNearCritical ? '#f59e0b' : hasModerateFloat ? '#eab308' : null;
+
                 return (
                   <div
                     key={task.id}
@@ -2028,13 +2035,19 @@ export default function ProjectGanttV2() {
                     className={`group grid grid-cols-[140px_60px_60px_45px_70px_105px] px-2 border-b transition-all relative ${
                       selectedTask?.id === task.id
                         ? 'bg-blue-50 border-l-4 border-l-blue-500'
-                        : isMilestone
-                          ? 'bg-gradient-to-r from-purple-50 to-pink-50 hover:from-purple-100 hover:to-pink-100 border-l-4 border-l-purple-500'
-                          : dragOverTaskId === task.id
-                            ? 'bg-blue-100 border-t-4 border-t-blue-500'
-                            : task.status === 'done'
-                              ? 'border-gray-100 hover:bg-gray-50 opacity-60'
-                              : 'border-gray-100 hover:bg-gray-50 cursor-move'
+                        : isCritical
+                          ? 'bg-red-50/50 hover:bg-red-100/50 border-l-4 border-l-red-500'
+                          : isNearCritical
+                            ? 'bg-orange-50/50 hover:bg-orange-100/50 border-l-4 border-l-orange-500'
+                            : hasModerateFloat
+                              ? 'bg-yellow-50/50 hover:bg-yellow-100/50 border-l-4 border-l-yellow-500'
+                              : isMilestone
+                                ? 'bg-gradient-to-r from-purple-50 to-pink-50 hover:from-purple-100 hover:to-pink-100 border-l-4 border-l-purple-500'
+                                : dragOverTaskId === task.id
+                                  ? 'bg-blue-100 border-t-4 border-t-blue-500'
+                                  : task.status === 'done'
+                                    ? 'border-gray-100 hover:bg-gray-50 opacity-60'
+                                    : 'border-gray-100 hover:bg-gray-50 cursor-move'
                     }`}
                     style={{ height: `${GANTT_CONFIG.rowHeight}px` }}
                     onClick={() => setSelectedTask(selectedTask?.id === task.id ? null : task)}
@@ -2066,9 +2079,68 @@ export default function ProjectGanttV2() {
                         </div>
                       )}
 
-                      <p className={`font-medium truncate flex-1 ${isMilestone ? 'text-purple-900 font-bold' : 'text-gray-900'}`} style={{ fontSize: '11px' }} title={task.title}>
-                        {task.title}
-                      </p>
+                      <div className="flex items-center gap-1 flex-1 min-w-0">
+                        <p className={`font-medium truncate ${isMilestone ? 'text-purple-900 font-bold' : 'text-gray-900'}`} style={{ fontSize: '11px' }} title={task.title}>
+                          {task.title}
+                        </p>
+
+                        {/* Badge de Criticidade */}
+                        {isCritical && (
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <div className="w-3 h-3 bg-red-500 rounded-full flex items-center justify-center flex-shrink-0">
+                                <span className="text-white text-[8px] font-bold">!</span>
+                              </div>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p className="font-semibold">Tarefa Crítica</p>
+                              <p className="text-xs">Folga: 0 dias - Qualquer atraso impacta o projeto</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        )}
+
+                        {isNearCritical && (
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <div className="w-3 h-3 bg-orange-500 rounded-full flex items-center justify-center flex-shrink-0">
+                                <span className="text-white text-[8px] font-bold">!</span>
+                              </div>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p className="font-semibold">Quase Crítica</p>
+                              <p className="text-xs">Folga: {cpmTask?.totalFloat} dias - Atenção redobrada</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        )}
+
+                        {hasModerateFloat && (
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <div className="w-3 h-3 bg-yellow-500 rounded-full flex items-center justify-center flex-shrink-0">
+                                <span className="text-white text-[8px] font-bold">i</span>
+                              </div>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p className="font-semibold">Atenção</p>
+                              <p className="text-xs">Folga: {cpmTask?.totalFloat} dias - Pouca margem</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        )}
+
+                        {showCriticalPath && cpmTask && cpmTask.totalFloat && cpmTask.totalFloat > 5 && (
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <div className="w-3 h-3 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0">
+                                <span className="text-white text-[8px] font-bold">✓</span>
+                              </div>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p className="font-semibold">Folga Confortável</p>
+                              <p className="text-xs">Folga: {cpmTask.totalFloat} dias - Flexibilidade disponível</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        )}
+                      </div>
                     </div>
 
                     {/* Coluna Dt Inicial */}
