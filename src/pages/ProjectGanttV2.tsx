@@ -10,6 +10,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { UserSelect } from "@/components/ui/user-select";
 import { Slider } from "@/components/ui/slider";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import {
   ArrowLeft,
   Plus,
@@ -18,6 +19,8 @@ import {
   Trash2,
   ChevronDown,
   ChevronRight,
+  ChevronsDown,
+  ChevronsUp,
   GanttChartSquare,
   Sparkles,
   Target,
@@ -1720,31 +1723,79 @@ export default function ProjectGanttV2() {
               <div className="font-bold text-gray-800 flex items-center justify-center px-1" style={{ fontSize: '10px' }}>DIAS</div>
               <div className="font-bold text-gray-800 flex items-center justify-center px-1" style={{ fontSize: '10px' }}>%</div>
               <div className="font-bold text-gray-800 flex items-center px-1" style={{ fontSize: '10px' }}>RESPONSÁVEL</div>
-              
-              {/* Botão Nova Tarefa */}
-              <button
-                onClick={() => {
-                  setEditingTask(null);
-                  setTaskForm({
-                    title: "",
-                    description: "",
-                    start_date: "",
-                    due_date: "",
-                    assigned_to_email: "",
-                    parent_id: "none",
-                    status: "todo",
-                    priority: "medium",
-                    progress: 0,
-                    is_milestone: false,
-                    milestone_order: 0
-                  });
-                  setShowTaskForm(true);
-                }}
-                className="absolute top-2 right-2 w-6 h-6 bg-primary hover:bg-primary/90 text-white rounded-md flex items-center justify-center shadow-sm transition-colors"
-                title="Nova Tarefa"
-              >
-                <Plus className="w-3 h-3" />
-              </button>
+
+              {/* Botões de ação */}
+              <div className="absolute top-2 right-2 flex gap-1">
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button
+                      onClick={() => {
+                        const allTaskIds = new Set<string>();
+                        const collectIds = (tasksToProcess: Task[]) => {
+                          tasksToProcess.forEach(t => {
+                            allTaskIds.add(t.id);
+                            if (t.children && t.children.length > 0) {
+                              collectIds(t.children);
+                            }
+                          });
+                        };
+                        collectIds(tasks);
+                        setExpandedTasks(allTaskIds);
+                      }}
+                      className="w-6 h-6 bg-blue-500 hover:bg-blue-600 text-white rounded-md flex items-center justify-center shadow-sm transition-colors"
+                    >
+                      <ChevronsDown className="w-3 h-3" />
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Expandir todas as hierarquias</p>
+                  </TooltipContent>
+                </Tooltip>
+
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button
+                      onClick={() => setExpandedTasks(new Set())}
+                      className="w-6 h-6 bg-orange-500 hover:bg-orange-600 text-white rounded-md flex items-center justify-center shadow-sm transition-colors"
+                    >
+                      <ChevronsUp className="w-3 h-3" />
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Colapsar todas as hierarquias</p>
+                  </TooltipContent>
+                </Tooltip>
+
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button
+                      onClick={() => {
+                        setEditingTask(null);
+                        setTaskForm({
+                          title: "",
+                          description: "",
+                          start_date: "",
+                          due_date: "",
+                          assigned_to_email: "",
+                          parent_id: "none",
+                          status: "todo",
+                          priority: "medium",
+                          progress: 0,
+                          is_milestone: false,
+                          milestone_order: 0
+                        });
+                        setShowTaskForm(true);
+                      }}
+                      className="w-6 h-6 bg-primary hover:bg-primary/90 text-white rounded-md flex items-center justify-center shadow-sm transition-colors"
+                    >
+                      <Plus className="w-3 h-3" />
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Nova Tarefa</p>
+                  </TooltipContent>
+                </Tooltip>
+              </div>
             </div>
 
             {/* Lista de tarefas */}
