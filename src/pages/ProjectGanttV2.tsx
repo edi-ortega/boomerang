@@ -161,7 +161,6 @@ export default function ProjectGanttV2() {
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const canvasContainerRef = useRef<HTMLDivElement>(null);
-  const [containerWidth, setContainerWidth] = useState(0);
 
   const [taskForm, setTaskForm] = useState({
     title: "",
@@ -205,28 +204,9 @@ export default function ProjectGanttV2() {
     }
   }, [projectId, tenantId]);
 
-  // Detectar largura do container
-  useEffect(() => {
-    const container = canvasContainerRef.current;
-    if (!container) return;
-
-    const updateWidth = () => {
-      setContainerWidth(container.clientWidth);
-    };
-
-    updateWidth();
-
-    const resizeObserver = new ResizeObserver(updateWidth);
-    resizeObserver.observe(container);
-
-    return () => {
-      resizeObserver.disconnect();
-    };
-  }, []);
-
   useEffect(() => {
     drawGantt();
-  }, [tasks, expandedTasks, isDragging, containerWidth]);
+  }, [tasks, expandedTasks, isDragging]);
 
   const fetchInitialData = async () => {
     setIsLoading(true);
@@ -1648,10 +1628,10 @@ export default function ProjectGanttV2() {
         </motion.div>
 
         {/* Layout: Sidebar + Canvas */}
-        <div className="flex flex-1 overflow-hidden">
+        <div className="flex overflow-hidden" style={{ height: 'calc(100vh - 250px)' }}>
           {/* Sidebar Esquerda - Lista de Tarefas com Colunas */}
           <div
-            className="bg-white border-r border-gray-200 flex-shrink-0 shadow-lg flex flex-col overflow-hidden"
+            className="bg-white border-r border-gray-200 flex-shrink-0 shadow-lg flex flex-col overflow-y-auto"
             style={{ width: '480px' }}
           >
             {/* Header com colunas */}
@@ -1931,7 +1911,7 @@ export default function ProjectGanttV2() {
           </div>
 
           {/* Canvas à Direita */}
-          <div ref={canvasContainerRef} className="flex-1 overflow-auto bg-gradient-to-br from-gray-50 to-blue-50">
+          <div ref={canvasContainerRef} className="overflow-auto bg-gradient-to-br from-gray-50 to-blue-50" style={{ flex: '1 1 auto' }}>
             <canvas
               ref={canvasRef}
               className="cursor-default"
