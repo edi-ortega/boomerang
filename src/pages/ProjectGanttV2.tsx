@@ -732,6 +732,16 @@ export default function ProjectGanttV2() {
   };
 
   // ==================== DRAG HANDLERS ====================
+  // Helper para calcular minDate de forma consistente com o drawGantt
+  const calculateMinDate = (tasks: Task[]): Date => {
+    let minDate = new Date();
+    tasks.forEach(task => {
+      if (task.start && task.start < minDate) minDate = task.start;
+    });
+    // Usar exatamente o mesmo cálculo do drawGantt
+    return new Date(minDate.getFullYear(), minDate.getMonth(), minDate.getDate());
+  };
+
   const getTaskAtPosition = (x: number, y: number, minDate: Date): { task: Task, taskIndex: number, edge?: 'left' | 'right' | null } | null => {
     const visibleTasks = getVisibleTasks();
     const taskIndex = Math.floor((y - GANTT_CONFIG.headerHeight) / GANTT_CONFIG.rowHeight);
@@ -802,12 +812,7 @@ export default function ProjectGanttV2() {
     const visibleTasks = getVisibleTasks();
     if (visibleTasks.length === 0) return;
 
-    let minDate = new Date();
-    visibleTasks.forEach(task => {
-      if (task.start && task.start < minDate) minDate = task.start;
-    });
-    minDate = new Date(minDate.getFullYear(), minDate.getMonth(), 1);
-
+    const minDate = calculateMinDate(visibleTasks);
     const taskInfo = getTaskAtPosition(x, y, minDate);
 
     console.log('🖱️ Mouse Down:', {
@@ -924,13 +929,8 @@ export default function ProjectGanttV2() {
       // Atualizar cursor baseado na posição
       const visibleTasks = getVisibleTasks();
       if (visibleTasks.length === 0) return;
-      
-      let minDate = new Date();
-      visibleTasks.forEach(task => {
-        if (task.start && task.start < minDate) minDate = task.start;
-      });
-      minDate = new Date(minDate.getFullYear(), minDate.getMonth(), 1);
-      
+
+      const minDate = calculateMinDate(visibleTasks);
       const taskInfo = getTaskAtPosition(x, y, minDate);
 
       // Atualizar debug info
