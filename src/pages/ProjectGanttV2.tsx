@@ -48,6 +48,14 @@ import {
   getAllTasksFlat,
   getTaskColor
 } from "@/components/utils/TaskHierarchyHelper";
+import {
+  calculateCriticalPath,
+  sortCriticalPath,
+  formatFloat,
+  getFloatColor,
+  type CPMTask,
+  type CPMResult
+} from "@/lib/critical-path-helper";
 
 // ==================== CONFIGURAÇÕES ====================
 const GANTT_CONFIG = {
@@ -171,6 +179,10 @@ export default function ProjectGanttV2() {
   // Estados para drag na lista de tarefas
   const [draggedTaskId, setDraggedTaskId] = useState<string | null>(null);
   const [dragOverTaskId, setDragOverTaskId] = useState<string | null>(null);
+
+  // Estados para Caminho Crítico
+  const [showCriticalPath, setShowCriticalPath] = useState(false);
+  const [cpmResult, setCpmResult] = useState<CPMResult | null>(null);
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const canvasContainerRef = useRef<HTMLDivElement>(null);
@@ -377,11 +389,51 @@ export default function ProjectGanttV2() {
       collectIds(hierarchicalTasks);
       setExpandedTasks(prev => new Set([...prev, ...allTaskIds]));
 
+      // Calcular Caminho Crítico se habilitado
+      if (showCriticalPath) {
+        calculateAndSetCPM(allTasks);
+      }
+
     } catch (error) {
       console.error("Error reloading tasks:", error);
       toast.error("Erro ao recarregar tarefas");
     }
   };
+
+  // Função para calcular o CPM
+  const calculateAndSetCPM = (taskList: any[]) => {
+    try {
+      // Converter tasks para formato CPM
+      const cpmTasks: CPMTask[] = taskList.map(task => ({
+        id: task.id,
+        title: task.title,
+        start_date: task.start_date,
+        due_date: task.due_date,
+        dependencies: task.dependencies || []
+      }));
+
+      // Calcular CPM
+      const result = calculateCriticalPath(cpmTasks);
+      setCpmResult(result);
+
+      console.log('📊 Critical Path Analysis:', {
+        criticalTasks: result.criticalPath.length,
+        projectDuration: result.projectDuration,
+        projectEndDate: result.projectEndDate
+      });
+    } catch (error) {
+      console.error('Error calculating critical path:', error);
+      toast.error('Erro ao calcular caminho crítico');
+    }
+  };
+
+  // Recalcular CPM quando showCriticalPath mudar ou tasks mudarem
+  useEffect(() => {
+    if (showCriticalPath && tasks.length > 0) {
+      const allTasks = getAllTasksFlat(tasks);
+      calculateAndSetCPM(allTasks);
+    }
+  }, [showCriticalPath, tasks]);
 
   const fixTaskOrdering = async (tasks: any[]) => {
     try {
