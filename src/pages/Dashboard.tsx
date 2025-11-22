@@ -164,6 +164,12 @@ export default function Dashboard() {
     };
   }, [tenantId]);
 
+  useEffect(() => {
+    if (!isLoading && tenantId) {
+      updateContextSidebar();
+    }
+  }, [projects.length, tasks.length, sprints.length, isLoading, currentUser?.email, tenantId]);
+
   const loadData = async () => {
     if (!tenantId) {
       setIsLoading(false);
@@ -357,6 +363,61 @@ export default function Dashboard() {
       setAiPrompt("");
       setIsAiProcessing(false);
     }, 1500);
+  };
+
+  const updateContextSidebar = () => {
+    const stats = getStats();
+
+    updateContext({
+      title: "Dashboard",
+      stats: [
+        {
+          label: "Projetos Ativos",
+          value: stats.activeProjects,
+          icon: <Folder className="w-4 h-4 text-primary" />
+        },
+        {
+          label: "Minhas Tarefas",
+          value: stats.myOpenTasks,
+          icon: <CheckCircle className="w-4 h-4 text-accent" />
+        },
+        {
+          label: "Tarefas Atrasadas",
+          value: stats.overdueTasks,
+          icon: <AlertTriangle className="w-4 h-4 text-destructive" />
+        },
+        {
+          label: "Taxa de Conclusão",
+          value: `${stats.completionRate}%`,
+          icon: <Target className="w-4 h-4 text-success" />
+        }
+      ],
+      info: {
+        title: "Bem-vindo ao Sprintix",
+        items: [
+          `${stats.activeProjects} projetos em andamento`,
+          `${stats.myOpenTasks} tarefas atribuídas a você`,
+          `Velocity média: ${stats.avgVelocity} pontos`
+        ]
+      },
+      quickActions: [
+        {
+          label: "Novo Projeto",
+          icon: <Rocket className="w-4 h-4" />,
+          href: createPageUrl("/projects/create")
+        },
+        {
+          label: "Nova Tarefa",
+          icon: <ListTodo className="w-4 h-4" />,
+          href: createPageUrl("/tasks/create")
+        },
+        {
+          label: "Ver Relatórios",
+          icon: <BarChart3 className="w-4 h-4" />,
+          href: createPageUrl("/reports")
+        }
+      ]
+    });
   };
 
   const stats = getStats();
