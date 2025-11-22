@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { bmr } from "@/api/boomerangClient";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Shield, Users, Check, Sparkles, Zap, Crown, UserCircle, AlertCircle, ChevronRight, ChevronLeft } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -401,38 +401,30 @@ export default function PermissionsManagementSection() {
   }
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="space-y-6"
-    >
-      <div className="text-center space-y-3 py-8">
-        <div className="flex justify-center">
-          <div className="w-16 h-16 bg-gradient-to-br from-primary/30 to-primary/10 rounded-2xl flex items-center justify-center">
-            <Shield className="w-8 h-8 text-primary" />
+    <Card className="glass-effect border-border">
+      <CardHeader>
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 bg-primary/20 rounded-lg flex items-center justify-center">
+            <Shield className="w-5 h-5 text-primary" />
+          </div>
+          <div>
+            <CardTitle className="text-foreground">Gerenciamento de Permissões</CardTitle>
+            <p className="text-sm text-muted-foreground mt-1">
+              Configure as permissões de acesso para cada tipo de usuário
+            </p>
           </div>
         </div>
-        <h3 className="text-2xl font-bold text-foreground">Gerenciamento de Permissões</h3>
-        <p className="text-muted-foreground max-w-2xl mx-auto">
-          Configure as permissões de acesso para cada tipo de usuário de forma visual e intuitiva.
-          Selecione um tipo de usuário abaixo para começar.
-        </p>
-      </div>
-
-      {userTypes.length === 0 ? (
-        <Card className="border-2 border-dashed border-border">
-          <CardContent className="text-center py-12">
-            <Users className="w-12 h-12 text-muted-foreground/50 mx-auto mb-4" />
-            <p className="text-foreground font-medium mb-2">Nenhum tipo de usuário encontrado</p>
-            <p className="text-sm text-muted-foreground">
-              Crie tipos de usuário em Cadastros para gerenciar permissões
-            </p>
-          </CardContent>
-        </Card>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <AnimatePresence>
-            {userTypes.map((userType, index) => {
+      </CardHeader>
+      <CardContent>
+        {userTypes.length === 0 ? (
+          <div className="text-center py-12 text-muted-foreground">
+            <Users className="w-12 h-12 mx-auto mb-4 opacity-50" />
+            <p className="font-medium mb-1">Nenhum tipo de usuário encontrado</p>
+            <p className="text-sm">Crie tipos de usuário em Cadastros para gerenciar permissões</p>
+          </div>
+        ) : (
+          <div className="space-y-2">
+            {userTypes.map((userType) => {
               const permCount = userType.permissions?.length || 0;
               const totalPerms = AVAILABLE_PERMISSIONS.length;
               const percentage = Math.round((permCount / totalPerms) * 100);
@@ -440,79 +432,61 @@ export default function PermissionsManagementSection() {
               return (
                 <motion.div
                   key={userType.id}
-                  initial={{ opacity: 0, y: 20 }}
+                  initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.1 }}
-                  whileHover={{ scale: 1.02, y: -5 }}
-                  onClick={() => handleSelectType(userType)}
-                  className="group cursor-pointer"
+                  className="flex items-center justify-between p-4 border border-border rounded-lg hover:bg-accent/50 transition-colors"
                 >
-                  <Card className="h-full border-2 border-border hover:border-primary/50 transition-all hover:shadow-xl bg-gradient-to-br from-card to-card/50">
-                    <CardContent className="p-6 space-y-4">
-                      <div className="flex items-start justify-between">
-                        <div className="flex items-center gap-3">
-                          <div className="w-12 h-12 bg-gradient-to-br from-primary/30 to-primary/10 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
-                            {userType.is_admin ? (
-                              <Crown className="w-6 h-6 text-amber-500" />
-                            ) : (
-                              <Users className="w-6 h-6 text-primary" />
-                            )}
-                          </div>
-                          <div>
-                            <h4 className="font-semibold text-foreground group-hover:text-primary transition-colors">
-                              {userType.name}
-                            </h4>
-                            {userType.is_admin && (
-                              <Badge variant="secondary" className="mt-1">Admin</Badge>
-                            )}
-                          </div>
-                        </div>
-                        <Zap className="w-5 h-5 text-primary opacity-0 group-hover:opacity-100 transition-opacity" />
+                  <div className="flex items-center gap-4 flex-1">
+                    <div className="w-10 h-10 bg-primary/20 rounded-lg flex items-center justify-center">
+                      {userType.is_admin ? (
+                        <Crown className="w-5 h-5 text-amber-500" />
+                      ) : (
+                        <Users className="w-5 h-5 text-primary" />
+                      )}
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        <h4 className="font-medium text-foreground">{userType.name}</h4>
+                        {userType.is_admin && (
+                          <Badge variant="secondary" className="text-xs">Admin</Badge>
+                        )}
                       </div>
-
                       {userType.description && (
-                        <p className="text-sm text-muted-foreground line-clamp-2">
+                        <p className="text-sm text-muted-foreground mb-2">
                           {userType.description}
                         </p>
                       )}
-
-                      <div className="space-y-2">
-                        <div className="flex items-center justify-between text-sm">
-                          <span className="text-muted-foreground">Permissões</span>
-                          <span className="font-semibold text-foreground">
-                            {permCount}/{totalPerms}
-                          </span>
+                      <div className="flex items-center gap-3">
+                        <div className="flex-1 max-w-xs">
+                          <div className="flex items-center justify-between text-xs text-muted-foreground mb-1">
+                            <span>Permissões configuradas</span>
+                            <span className="font-medium text-foreground">
+                              {permCount}/{totalPerms} ({percentage}%)
+                            </span>
+                          </div>
+                          <div className="h-1.5 bg-accent rounded-full overflow-hidden">
+                            <div
+                              className="h-full bg-primary rounded-full transition-all duration-500"
+                              style={{ width: `${percentage}%` }}
+                            />
+                          </div>
                         </div>
-                        <div className="h-2 bg-accent rounded-full overflow-hidden">
-                          <motion.div
-                            initial={{ width: 0 }}
-                            animate={{ width: `${percentage}%` }}
-                            transition={{ duration: 0.5, delay: index * 0.1 }}
-                            className="h-full bg-gradient-to-r from-primary to-primary/60 rounded-full"
-                          />
-                        </div>
-                        <p className="text-xs text-muted-foreground">
-                          {percentage}% configurado
-                        </p>
                       </div>
-
-                      <div className="pt-2 flex justify-center">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="w-full group-hover:bg-primary group-hover:text-primary-foreground transition-colors"
-                        >
-                          Gerenciar Permissões
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
+                    </div>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleSelectType(userType)}
+                  >
+                    Gerenciar
+                  </Button>
                 </motion.div>
               );
             })}
-          </AnimatePresence>
-        </div>
-      )}
-    </motion.div>
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 }
