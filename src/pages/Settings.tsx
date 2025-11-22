@@ -37,6 +37,9 @@ import TenantSelectorSection from "@/components/settings/TenantSelectorSection";
 import ThemeSelectorSection from "@/components/settings/ThemeSelectorSection";
 import { useToast } from "@/components/ui/use-toast";
 import { useConfirm } from "@/hooks/use-confirm";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { X, Plus, Edit2 } from "lucide-react";
 
 interface Setting {
   key: string;
@@ -95,6 +98,9 @@ export default function Settings() {
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [currentTheme, setCurrentTheme] = useState("dark");
+  const [editingComplexity, setEditingComplexity] = useState<ComplexityType | null>(null);
+  const [complexityValues, setComplexityValues] = useState<ComplexityValue[]>([]);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
   const defaultSettings: Setting[] = [
     {
@@ -325,6 +331,45 @@ export default function Settings() {
 
   const getCustomComplexityValues = (typeId: string): ComplexityValue[] => {
     return complexityTypes.find((t) => t.id === typeId)?.defaultValues || [];
+  };
+
+  const handleEditComplexity = (type: ComplexityType) => {
+    setEditingComplexity(type);
+    setComplexityValues([...type.defaultValues]);
+    setIsEditModalOpen(true);
+  };
+
+  const handleAddValue = () => {
+    setComplexityValues([...complexityValues, { value: "", label: "" }]);
+  };
+
+  const handleRemoveValue = (index: number) => {
+    setComplexityValues(complexityValues.filter((_, i) => i !== index));
+  };
+
+  const handleValueChange = (index: number, field: 'value' | 'label', newValue: string) => {
+    const updated = [...complexityValues];
+    updated[index] = { ...updated[index], [field]: newValue };
+    setComplexityValues(updated);
+  };
+
+  const handleSaveComplexity = () => {
+    if (!editingComplexity) return;
+
+    // Atualizar os valores no array de tipos
+    const typeIndex = complexityTypes.findIndex(t => t.id === editingComplexity.id);
+    if (typeIndex !== -1) {
+      complexityTypes[typeIndex].defaultValues = [...complexityValues];
+    }
+
+    toast({
+      title: "Escala atualizada!",
+      description: `A escala ${editingComplexity.name} foi atualizada com sucesso.`,
+    });
+
+    setIsEditModalOpen(false);
+    setEditingComplexity(null);
+    setComplexityValues([]);
   };
 
   const handleToggle = async (key: string, checkedOverride?: boolean) => {
@@ -682,8 +727,14 @@ export default function Settings() {
                         return (
                           <div
                             key={type.id}
-                            className="p-4 rounded-xl border-2 transition-all bg-accent/30 border-border hover:border-primary/50 relative"
+                            className="p-4 rounded-xl border-2 transition-all bg-accent/30 border-border hover:border-primary/50 relative group cursor-pointer"
+                            onClick={() => handleEditComplexity(type)}
                           >
+                            <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                              <div className="p-1.5 bg-primary/10 rounded-md">
+                                <Edit2 className="w-4 h-4 text-primary" />
+                              </div>
+                            </div>
                             <div className="flex items-start gap-3">
                               <span className="text-2xl">{type.icon}</span>
                               <div className="flex-1">
@@ -861,6 +912,83 @@ export default function Settings() {
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* Modal de Edição de Escala */}
+      <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <span className="text-2xl">{editingComplexity?.icon}</span>
+              Editar {editingComplexity?.name}
+            </DialogTitle>
+            <DialogDescription>
+              Customize os valores desta escala de complexidade. Cada valor deve ter um código e uma descrição.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-4">
+            {complexityValues.map((val, index) => (
+              <div key={index} className="flex items-center gap-3">
+                <div className="flex-1 grid grid-cols-2 gap-3">
+                  <div>
+                    <Label htmlFor={`value-${index}`} className="text-xs text-muted-foreground">
+                      Valor
+                    </Label>
+                    <Input
+                      id={`value-${index}`}
+                      value={val.value}
+                      onChange={(e) => handleValueChange(index, 'value', e.target.value)}
+                      placeholder="Ex: 1, XS, ?"
+                      className="mt-1"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor={`label-${index}`} className="text-xs text-muted-foreground">
+                      Descrição
+                    </Label>
+                    <Input
+                      id={`label-${index}`}
+                      value={val.label}
+                      onChange={(e) => handleValueChange(index, 'label', e.target.value)}
+                      placeholder="Ex: Muito Simples"
+                      className="mt-1"
+                    />
+                  </div>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => handleRemoveValue(index)}
+                  className="mt-6 text-destructive hover:text-destructive hover:bg-destructive/10"
+                >
+                  <X className="w-4 h-4" />
+                </Button>
+              </div>
+            ))}
+
+            <Button
+              variant="outline"
+              onClick={handleAddValue}
+              className="w-full"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Adicionar Valor
+            </Button>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsEditModalOpen(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={handleSaveComplexity}>
+              <Save className="w-4 h-4 mr-2" />
+              Salvar Escala
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <ConfirmDialog />
     </div>
   );
 }
