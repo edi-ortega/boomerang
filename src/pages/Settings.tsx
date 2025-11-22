@@ -6,7 +6,25 @@ import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, Mail, Bell, Settings as SettingsIcon, CheckCircle, Users, Palette, Upload, Trash2, Sun, Moon, Target, Save, Sparkles, Database, Calendar, Shield } from "lucide-react";
+import {
+  ArrowLeft,
+  Mail,
+  Bell,
+  Settings as SettingsIcon,
+  CheckCircle,
+  Users,
+  Palette,
+  Upload,
+  Trash2,
+  Sun,
+  Moon,
+  Target,
+  Save,
+  Sparkles,
+  Database,
+  Calendar,
+  Shield,
+} from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { motion } from "framer-motion";
@@ -86,7 +104,7 @@ export default function Settings() {
       category: "branding",
       description: "Nome do aplicativo",
       label: "Nome do Aplicativo",
-      icon: SettingsIcon
+      icon: SettingsIcon,
     },
     {
       key: "logo_url",
@@ -95,7 +113,7 @@ export default function Settings() {
       category: "branding",
       description: "URL do logotipo do sistema",
       label: "URL do Logotipo",
-      icon: Palette
+      icon: Palette,
     },
     {
       key: "ai_generate_story_points",
@@ -104,7 +122,7 @@ export default function Settings() {
       category: "sprint",
       description: "IA deve gerar estimativas de story points ao criar hierarquia",
       label: "IA Gera Story Points na Hierarquia",
-      icon: Sparkles
+      icon: Sparkles,
     },
     {
       key: "theme",
@@ -113,7 +131,7 @@ export default function Settings() {
       category: "appearance",
       description: "Tema visual do sistema",
       label: "Tema do Sistema",
-      icon: Palette
+      icon: Palette,
     },
     {
       key: "auto_complete_parent_items",
@@ -122,7 +140,7 @@ export default function Settings() {
       category: "sprint",
       description: "Completar automaticamente itens pai quando todos os filhos forem concluídos",
       label: "Auto-conclusão de Itens Pai",
-      icon: CheckCircle
+      icon: CheckCircle,
     },
     {
       key: "email_enabled",
@@ -131,7 +149,7 @@ export default function Settings() {
       category: "email",
       description: "Ativar envio de e-mails do sistema",
       label: "Envio de E-mails",
-      icon: Mail
+      icon: Mail,
     },
     {
       key: "email_on_task_assigned",
@@ -140,7 +158,7 @@ export default function Settings() {
       category: "email",
       description: "Enviar e-mail quando tarefa é atribuída",
       label: "E-mail em Atribuição de Tarefa",
-      icon: Mail
+      icon: Mail,
     },
     {
       key: "email_on_task_status_change",
@@ -149,7 +167,7 @@ export default function Settings() {
       category: "email",
       description: "Enviar e-mail quando status da tarefa muda",
       label: "E-mail em Mudança de Status",
-      icon: Mail
+      icon: Mail,
     },
     {
       key: "email_on_task_comment",
@@ -158,7 +176,7 @@ export default function Settings() {
       category: "email",
       description: "Enviar e-mail quando há comentário em tarefa",
       label: "E-mail em Comentários",
-      icon: Mail
+      icon: Mail,
     },
     {
       key: "email_on_mention",
@@ -167,7 +185,7 @@ export default function Settings() {
       category: "email",
       description: "Enviar e-mail quando usuário é mencionado",
       label: "E-mail em Menções",
-      icon: Mail
+      icon: Mail,
     },
     {
       key: "email_on_sprint_start",
@@ -176,7 +194,7 @@ export default function Settings() {
       category: "email",
       description: "Enviar e-mail quando sprint inicia",
       label: "E-mail ao Iniciar Sprint",
-      icon: Mail
+      icon: Mail,
     },
     {
       key: "email_on_sprint_end",
@@ -185,7 +203,7 @@ export default function Settings() {
       category: "email",
       description: "Enviar e-mail quando sprint termina",
       label: "E-mail ao Finalizar Sprint",
-      icon: Mail
+      icon: Mail,
     },
     {
       key: "email_on_deadline_approaching",
@@ -194,7 +212,7 @@ export default function Settings() {
       category: "email",
       description: "Enviar e-mail quando prazo está próximo (2 dias)",
       label: "E-mail de Lembrete de Prazo",
-      icon: Mail
+      icon: Mail,
     },
     {
       key: "notification_sound",
@@ -203,8 +221,8 @@ export default function Settings() {
       category: "notifications",
       description: "Reproduzir som em notificações",
       label: "Som de Notificação",
-      icon: Bell
-    }
+      icon: Bell,
+    },
   ];
 
   const complexityTypes: ComplexityType[] = [
@@ -306,25 +324,31 @@ export default function Settings() {
   };
 
   const getCustomComplexityValues = (typeId: string): ComplexityValue[] => {
-    return complexityTypes.find(t => t.id === typeId)?.defaultValues || [];
+    return complexityTypes.find((t) => t.id === typeId)?.defaultValues || [];
   };
 
   const handleToggle = async (key: string, checkedOverride?: boolean) => {
     const newValue = checkedOverride !== undefined ? checkedOverride : !isSettingEnabled(key);
-    const defaultSetting = defaultSettings.find(s => s.key === key);
+    const defaultSetting = defaultSettings.find((s) => s.key === key);
 
-    if (key === 'email_enabled') {
+    if (key === "email_enabled") {
       setEmailNotifications(newValue);
-    } else if (key === 'auto_complete_parent_items') {
+    } else if (key === "auto_complete_parent_items") {
       setAutoCompleteParent(newValue);
-    } else if (key === 'ai_generate_story_points') {
+    } else if (key === "ai_generate_story_points") {
       setAiGenerateStoryPoints(newValue);
-    } else if (key === 'theme') {
-      setCurrentTheme(newValue ? 'dark' : 'light');
+    } else if (key === "theme") {
+      setCurrentTheme(newValue ? "dark" : "light");
     }
 
     if (defaultSetting) {
-      await updateOrCreateSetting(key, newValue ? "true" : "false", defaultSetting.type, defaultSetting.description, defaultSetting.category);
+      await updateOrCreateSetting(
+        key,
+        newValue ? "true" : "false",
+        defaultSetting.type,
+        defaultSetting.description,
+        defaultSetting.category,
+      );
     }
   };
 
@@ -336,21 +360,20 @@ export default function Settings() {
 
       const allSettings = await base44.entities.SystemSettings.list();
       const settingsMap: Record<string, SystemSetting> = {};
-      
+
       allSettings.forEach((setting: any) => {
         settingsMap[setting.setting_key] = setting;
       });
 
       setSettings(settingsMap);
 
-      setEmailNotifications(settingsMap['email_enabled']?.setting_value !== "false");
-      setAutoCompleteParent(settingsMap['auto_complete_parent_items']?.setting_value !== "false");
-      setAiGenerateStoryPoints(settingsMap['ai_generate_story_points']?.setting_value !== "false");
-      setLogoUrl(settingsMap['logo_url']?.setting_value || "");
-      setCurrentTheme(settingsMap['theme']?.setting_value || "dark");
+      setEmailNotifications(settingsMap["email_enabled"]?.setting_value !== "false");
+      setAutoCompleteParent(settingsMap["auto_complete_parent_items"]?.setting_value !== "false");
+      setAiGenerateStoryPoints(settingsMap["ai_generate_story_points"]?.setting_value !== "false");
+      setLogoUrl(settingsMap["logo_url"]?.setting_value || "");
+      setCurrentTheme(settingsMap["theme"]?.setting_value || "dark");
 
       // Complexity settings placeholder - to be implemented
-
     } catch (error) {
       console.error("Error loading settings:", error);
       toast({
@@ -363,11 +386,17 @@ export default function Settings() {
     }
   };
 
-  const updateOrCreateSetting = async (key: string, value: string, type: string, description: string, category: string) => {
+  const updateOrCreateSetting = async (
+    key: string,
+    value: string,
+    type: string,
+    description: string,
+    category: string,
+  ) => {
     const existingSettings = await base44.entities.SystemSettings.filter({ setting_key: key });
     if (existingSettings && existingSettings.length > 0) {
       await base44.entities.SystemSettings.update(existingSettings[0].id, {
-        setting_value: String(value)
+        setting_value: String(value),
       });
     } else {
       await base44.entities.SystemSettings.create({
@@ -375,10 +404,10 @@ export default function Settings() {
         setting_value: String(value),
         setting_type: type,
         description: description,
-        category: category
+        category: category,
       });
     }
-    setSettings(prev => ({
+    setSettings((prev) => ({
       ...prev,
       [key]: {
         ...prev[key],
@@ -386,8 +415,8 @@ export default function Settings() {
         setting_value: String(value),
         setting_type: type,
         description: description,
-        category: category
-      }
+        category: category,
+      },
     }));
   };
 
@@ -396,17 +425,16 @@ export default function Settings() {
     try {
       toast({
         title: "Configurações salvas!",
-        description: "As configurações gerais foram salvas com sucesso."
+        description: "As configurações gerais foram salvas com sucesso.",
       });
 
       await loadSettings();
-
     } catch (error) {
       console.error("Error saving general settings:", error);
       toast({
         title: "Erro ao salvar",
         description: "Não foi possível salvar as configurações gerais.",
-        variant: "destructive"
+        variant: "destructive",
       });
     } finally {
       setIsSaving(false);
@@ -429,13 +457,12 @@ export default function Settings() {
       setTimeout(() => setSaveSuccess(false), 3000);
       toast({
         title: "Logotipo enviado!",
-        description: "O logotipo foi atualizado com sucesso."
+        description: "O logotipo foi atualizado com sucesso.",
       });
 
       if (window.location.reload) {
         window.location.reload();
       }
-
     } catch (error) {
       console.error("Error uploading logo:", error);
       toast({
@@ -449,9 +476,15 @@ export default function Settings() {
   };
 
   const handleSaveLogoSetting = async (url: string) => {
-    const defaultLogoSetting = defaultSettings.find(s => s.key === 'logo_url');
+    const defaultLogoSetting = defaultSettings.find((s) => s.key === "logo_url");
     if (defaultLogoSetting) {
-      await updateOrCreateSetting('logo_url', url, defaultLogoSetting.type, defaultLogoSetting.description, defaultLogoSetting.category);
+      await updateOrCreateSetting(
+        "logo_url",
+        url,
+        defaultLogoSetting.type,
+        defaultLogoSetting.description,
+        defaultLogoSetting.category,
+      );
     }
   };
 
@@ -460,7 +493,7 @@ export default function Settings() {
       title: "Remover Logotipo",
       description: "Tem certeza que deseja remover o logotipo do sistema?",
     });
-    
+
     if (!confirmed) return;
 
     try {
@@ -472,7 +505,7 @@ export default function Settings() {
 
       toast({
         title: "Logotipo removido",
-        description: "O logotipo foi removido com sucesso."
+        description: "O logotipo foi removido com sucesso.",
       });
 
       if (window.location.reload) {
@@ -483,31 +516,31 @@ export default function Settings() {
       toast({
         title: "Erro ao remover",
         description: "Não foi possível remover o logotipo.",
-        variant: "destructive"
+        variant: "destructive",
       });
     }
   };
 
   const getSettingValue = (key: string): string => {
-    if (key === 'logo_url') return logoUrl;
-    if (key === 'email_enabled') return emailNotifications ? "true" : "false";
-    if (key === 'auto_complete_parent_items') return autoCompleteParent ? "true" : "false";
-    if (key === 'ai_generate_story_points') return aiGenerateStoryPoints ? "true" : "false";
+    if (key === "logo_url") return logoUrl;
+    if (key === "email_enabled") return emailNotifications ? "true" : "false";
+    if (key === "auto_complete_parent_items") return autoCompleteParent ? "true" : "false";
+    if (key === "ai_generate_story_points") return aiGenerateStoryPoints ? "true" : "false";
 
-    return settings[key]?.setting_value || defaultSettings.find(s => s.key === key)?.value || "";
+    return settings[key]?.setting_value || defaultSettings.find((s) => s.key === key)?.value || "";
   };
 
   const isSettingEnabled = (key: string): boolean => {
-    if (key === 'email_enabled') return emailNotifications;
-    if (key === 'auto_complete_parent_items') return autoCompleteParent;
-    if (key === 'ai_generate_story_points') return aiGenerateStoryPoints;
+    if (key === "email_enabled") return emailNotifications;
+    if (key === "auto_complete_parent_items") return autoCompleteParent;
+    if (key === "ai_generate_story_points") return aiGenerateStoryPoints;
 
     return getSettingValue(key) === "true";
   };
 
   const groupedSettings = {
-    email: defaultSettings.filter(s => s.category === "email" && s.key !== "email_enabled"),
-    notifications: defaultSettings.filter(s => s.category === "notifications")
+    email: defaultSettings.filter((s) => s.category === "email" && s.key !== "email_enabled"),
+    notifications: defaultSettings.filter((s) => s.category === "notifications"),
   };
 
   if (isLoadingSettings) {
@@ -578,15 +611,13 @@ export default function Settings() {
               </CardHeader>
               <CardContent className="space-y-6">
                 <div>
-                  <label className="text-sm font-medium text-foreground mb-3 block">
-                    Logotipo do Sistema
-                  </label>
-                  
+                  <label className="text-sm font-medium text-foreground mb-3 block">Logotipo do Sistema</label>
+
                   {logoUrl ? (
                     <div className="flex items-center gap-4">
-                      <img 
-                        src={logoUrl} 
-                        alt="Logo atual" 
+                      <img
+                        src={logoUrl}
+                        alt="Logo atual"
                         className="h-16 w-auto object-contain bg-muted rounded-lg p-2"
                       />
                       <div className="flex gap-2">
@@ -650,7 +681,7 @@ export default function Settings() {
                   </div>
                   <Switch
                     checked={autoCompleteParent}
-                    onCheckedChange={(checked) => handleToggle('auto_complete_parent_items', checked)}
+                    onCheckedChange={(checked) => handleToggle("auto_complete_parent_items", checked)}
                   />
                 </div>
 
@@ -685,9 +716,7 @@ export default function Settings() {
                   </div>
                   <div>
                     <CardTitle className="text-foreground">Empresa</CardTitle>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      Selecione a empresa que deseja visualizar
-                    </p>
+                    <p className="text-sm text-muted-foreground mt-1">Selecione a empresa que deseja visualizar</p>
                   </div>
                 </div>
               </CardHeader>
@@ -705,9 +734,7 @@ export default function Settings() {
                   </div>
                   <div>
                     <CardTitle className="text-foreground">Aparência</CardTitle>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      Personalize o tema de cores do sistema
-                    </p>
+                    <p className="text-sm text-muted-foreground mt-1">Personalize o tema de cores do sistema</p>
                   </div>
                 </div>
               </CardHeader>
@@ -754,14 +781,10 @@ export default function Settings() {
                             <div className="flex items-start gap-3">
                               <span className="text-2xl">{type.icon}</span>
                               <div className="flex-1">
-                                <h4 className="font-semibold mb-1 text-foreground">
-                                  {type.name}
-                                </h4>
-                                <p className="text-sm text-muted-foreground">
-                                  {type.description}
-                                </p>
+                                <h4 className="font-semibold mb-1 text-foreground">{type.name}</h4>
+                                <p className="text-sm text-muted-foreground">{type.description}</p>
                                 <p className="text-xs text-muted-foreground mt-2">
-                                  Valores: {customValues.map(v => v.value || v).join(', ')}
+                                  Valores: {customValues.map((v) => v.value || v).join(", ")}
                                 </p>
                               </div>
                             </div>
@@ -778,12 +801,13 @@ export default function Settings() {
                         IA Gera Story Points na Hierarquia
                       </p>
                       <p className="text-sm text-muted-foreground">
-                        Quando ativado, a IA irá gerar estimativas de story points automaticamente ao criar histórias na hierarquia
+                        Quando ativado, a IA irá gerar estimativas de story points automaticamente ao criar histórias na
+                        hierarquia
                       </p>
                     </div>
                     <Switch
                       checked={aiGenerateStoryPoints}
-                      onCheckedChange={(checked) => handleToggle('ai_generate_story_points', checked)}
+                      onCheckedChange={(checked) => handleToggle("ai_generate_story_points", checked)}
                     />
                   </div>
 
@@ -793,11 +817,10 @@ export default function Settings() {
                         <Target className="w-4 h-4 text-blue-600" />
                       </div>
                       <div>
-                        <p className="text-sm font-semibold text-foreground mb-1">
-                          📊 Como Funciona
-                        </p>
+                        <p className="text-sm font-semibold text-foreground mb-1">📊 Como Funciona</p>
                         <p className="text-sm text-muted-foreground">
-                          Cada projeto pode escolher qual escala usar (Fibonacci, T-Shirt, etc). Os valores customizados que você definir aqui serão aplicados em todos os projetos que usarem aquela escala.
+                          Cada projeto pode escolher qual escala usar (Fibonacci, T-Shirt, etc). Os valores customizados
+                          que você definir aqui serão aplicados em todos os projetos que usarem aquela escala.
                         </p>
                       </div>
                     </div>
@@ -836,7 +859,7 @@ export default function Settings() {
                     </div>
                     <Switch
                       checked={emailNotifications}
-                      onCheckedChange={(checked) => handleToggle('email_enabled', checked)}
+                      onCheckedChange={(checked) => handleToggle("email_enabled", checked)}
                       className="data-[state=checked]:bg-primary"
                     />
                   </div>
@@ -913,11 +936,7 @@ export default function Settings() {
           </TabsContent>
 
           <TabsContent value="permissions">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4 }}
-            >
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
               <PermissionsManagementSection />
             </motion.div>
           </TabsContent>
@@ -934,9 +953,7 @@ export default function Settings() {
               <DataImportSection />
             </motion.div>
           </TabsContent>
-
         </Tabs>
-
       </div>
     </div>
   );
