@@ -17,6 +17,7 @@ import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { getSupabaseClient } from "@/lib/supabase-client";
 import { getCurrentSystemId } from "@/lib/tenant-helper";
+import { TenantSwitcher } from "@/components/TenantSwitcher";
 const menuItems = [{
   title: "Dashboard",
   url: "/dashboard",
@@ -194,6 +195,11 @@ export function AppSidebar() {
         </SidebarHeader>
 
       <SidebarContent className="px-2 py-4">
+        {open && (
+          <div className="px-1 mb-4">
+            <TenantSwitcher />
+          </div>
+        )}
         <SidebarMenu>
           {menuItems.map(item => {
             const isAlerts = item.url === "/alerts";

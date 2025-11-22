@@ -120,20 +120,21 @@ export default function TenantSelectorSection() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.1 }}
+              className="h-full"
             >
               <Card
-                className={`cursor-pointer transition-all hover:shadow-lg ${
+                className={`cursor-pointer transition-all hover:shadow-lg h-full flex flex-col ${
                   currentTenantId === tenant.id
                     ? 'border-primary border-2 bg-primary/5'
                     : 'border-border hover:border-primary/50'
                 }`}
                 onClick={() => handleSelectTenant(tenant)}
               >
-                <CardHeader>
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-center gap-3">
+                <CardHeader className="flex-1">
+                  <div className="flex items-start justify-between gap-3 min-h-[80px]">
+                    <div className="flex items-start gap-3 flex-1">
                       <div
-                        className={`p-3 rounded-lg ${
+                        className={`p-3 rounded-lg flex-shrink-0 ${
                           currentTenantId === tenant.id
                             ? 'bg-primary text-primary-foreground'
                             : 'bg-muted text-muted-foreground'
@@ -141,24 +142,24 @@ export default function TenantSelectorSection() {
                       >
                         <Building2 className="w-6 h-6" />
                       </div>
-                      <div>
-                        <CardTitle className="text-lg">{tenant.name}</CardTitle>
+                      <div className="flex-1 min-w-0">
+                        <CardTitle className="text-lg mb-2 line-clamp-2">{tenant.name}</CardTitle>
                         {tenant.description && (
-                          <CardDescription className="mt-1">
+                          <CardDescription className="line-clamp-2">
                             {tenant.description}
                           </CardDescription>
                         )}
                       </div>
                     </div>
                     {currentTenantId === tenant.id && (
-                      <div className="p-1 rounded-full bg-primary">
+                      <div className="p-1 rounded-full bg-primary flex-shrink-0">
                         <Check className="w-4 h-4 text-primary-foreground" />
                       </div>
                     )}
                   </div>
                 </CardHeader>
                 {currentTenantId === tenant.id && (
-                  <CardContent className="pt-0">
+                  <CardContent className="pt-0 pb-4">
                     <div className="px-3 py-1.5 rounded-md bg-primary/10 text-primary text-sm font-medium inline-block">
                       Selecionada
                     </div>
