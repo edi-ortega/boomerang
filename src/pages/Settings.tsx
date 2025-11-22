@@ -600,115 +600,8 @@ export default function Settings() {
           </TabsList>
 
           <TabsContent value="general">
-            <Card className="glass-effect border-border">
-              <CardHeader>
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-primary/20 rounded-lg flex items-center justify-center">
-                    <Palette className="w-5 h-5 text-primary" />
-                  </div>
-                  <CardTitle className="text-foreground">Identidade Visual</CardTitle>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div>
-                  <label className="text-sm font-medium text-foreground mb-3 block">Logotipo do Sistema</label>
-
-                  {logoUrl ? (
-                    <div className="flex items-center gap-4">
-                      <img
-                        src={logoUrl}
-                        alt="Logo atual"
-                        className="h-16 w-auto object-contain bg-muted rounded-lg p-2"
-                      />
-                      <div className="flex gap-2">
-                        <label htmlFor="logo-upload" className="cursor-pointer">
-                          <div className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/80 transition-colors flex items-center gap-2">
-                            <Upload className="w-4 h-4" />
-                            Alterar Logo
-                          </div>
-                          <input
-                            id="logo-upload"
-                            type="file"
-                            accept="image/*"
-                            onChange={handleLogoUpload}
-                            className="hidden"
-                            disabled={isUploadingLogo}
-                          />
-                        </label>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={removeLogo}
-                          className="border-red-500 text-red-600 hover:bg-red-50"
-                        >
-                          <Trash2 className="w-4 h-4 mr-2" />
-                          Remover
-                        </Button>
-                      </div>
-                    </div>
-                  ) : (
-                    <label htmlFor="logo-upload" className="cursor-pointer">
-                      <div className="border-2 border-dashed border-border rounded-xl p-8 text-center hover:border-primary transition-colors">
-                        <Upload className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
-                        <p className="text-foreground font-medium mb-1">Clique para fazer upload</p>
-                        <p className="text-sm text-muted-foreground">PNG, JPG ou SVG (máx. 2MB)</p>
-                      </div>
-                      <input
-                        id="logo-upload"
-                        type="file"
-                        accept="image/*"
-                        onChange={handleLogoUpload}
-                        className="hidden"
-                        disabled={isUploadingLogo}
-                      />
-                    </label>
-                  )}
-
-                  {isUploadingLogo && (
-                    <div className="flex items-center gap-2 mt-3">
-                      <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-                      <span className="text-sm text-muted-foreground">Enviando...</span>
-                    </div>
-                  )}
-                </div>
-
-                <div className="flex items-center justify-between p-4 rounded-lg bg-accent/30">
-                  <div className="flex-1">
-                    <p className="font-medium text-foreground mb-1">Auto-conclusão de Itens Pai</p>
-                    <p className="text-sm text-muted-foreground">
-                      Completar automaticamente itens pai quando todos os filhos forem concluídos
-                    </p>
-                  </div>
-                  <Switch
-                    checked={autoCompleteParent}
-                    onCheckedChange={(checked) => handleToggle("auto_complete_parent_items", checked)}
-                  />
-                </div>
-
-                <div className="flex gap-3 pt-4">
-                  <Button
-                    onClick={handleSaveGeneralSettings}
-                    disabled={isSaving}
-                    className="bg-primary hover:bg-primary/80"
-                  >
-                    {isSaving ? (
-                      <>
-                        <div className="w-4 h-4 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin mr-2" />
-                        Salvando...
-                      </>
-                    ) : (
-                      <>
-                        <Save className="w-4 h-4 mr-2" />
-                        Salvar Configurações
-                      </>
-                    )}
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-
             {/* Seção de Seleção de Empresa */}
-            <Card className="glass-effect border-border mt-6">
+            <Card className="glass-effect border-border">
               <CardHeader>
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 bg-blue-500/20 rounded-lg flex items-center justify-center">
@@ -761,6 +654,19 @@ export default function Settings() {
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-6">
+                  <div className="flex items-center justify-between p-4 rounded-lg bg-accent/30">
+                    <div className="flex-1">
+                      <p className="font-medium text-foreground mb-1">Auto-conclusão de Itens Pai</p>
+                      <p className="text-sm text-muted-foreground">
+                        Completar automaticamente itens pai quando todos os filhos forem concluídos
+                      </p>
+                    </div>
+                    <Switch
+                      checked={autoCompleteParent}
+                      onCheckedChange={(checked) => handleToggle("auto_complete_parent_items", checked)}
+                    />
+                  </div>
+
                   <div>
                     <h3 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
                       <Target className="w-4 h-4" />
