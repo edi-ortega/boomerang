@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Building2, Check } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { supabase } from '@/integrations/supabase/client';
-import { useTenantId } from '@/hooks/useTenantId';
+import { useTenant } from '@/contexts/TenantContext';
 import { toast } from 'sonner';
 
 interface Tenant {
@@ -16,7 +16,7 @@ interface Tenant {
 export default function TenantSelectorSection() {
   const [tenants, setTenants] = useState<Tenant[]>([]);
   const [loading, setLoading] = useState(true);
-  const { tenantId, setTenantId } = useTenantId();
+  const { currentTenantId, setCurrentTenant } = useTenant();
 
   useEffect(() => {
     loadTenants();
@@ -69,11 +69,16 @@ export default function TenantSelectorSection() {
 
       setTenants(tenantsData);
 
-      // Selecionar automaticamente o cliente primário se existir
+      // Selecionar automaticamente o cliente primário se não houver um selecionado
       const primaryClient = tenantsData.find(t => t.isPrimary);
-      if (primaryClient && !tenantId) {
-        console.log('Setting primary client as selected:', primaryClient.id);
-        setTenantId(primaryClient.id);
+      if (primaryClient && !currentTenantId) {
+        console.log('Setting primary client as selected:', primaryClient);
+        await setCurrentTenant({
+          id: primaryClient.id,
+          name: primaryClient.name,
+          slug: primaryClient.name.toLowerCase().replace(/\s+/g, '-'),
+          is_active: true
+        });
       }
     } catch (error) {
       console.error('Error loading tenants:', error);
@@ -83,8 +88,14 @@ export default function TenantSelectorSection() {
     }
   };
 
-  const handleSelectTenant = (newTenantId: string) => {
-    setTenantId(newTenantId);
+  const handleSelectTenant = async (tenant: Tenant) => {
+    await setCurrentTenant({
+      id: tenant.id,
+      name: tenant.name,
+      slug: tenant.name.toLowerCase().replace(/\s+/g, '-'),
+      is_active: true
+    });
+
     toast.success('Empresa selecionada com sucesso!');
 
     // Recarregar página para atualizar dados
@@ -112,18 +123,18 @@ export default function TenantSelectorSection() {
             >
               <Card
                 className={`cursor-pointer transition-all hover:shadow-lg ${
-                  tenantId === tenant.id
+                  currentTenantId === tenant.id
                     ? 'border-primary border-2 bg-primary/5'
                     : 'border-border hover:border-primary/50'
                 }`}
-                onClick={() => handleSelectTenant(tenant.id)}
+                onClick={() => handleSelectTenant(tenant)}
               >
                 <CardHeader>
                   <div className="flex items-start justify-between">
                     <div className="flex items-center gap-3">
                       <div
                         className={`p-3 rounded-lg ${
-                          tenantId === tenant.id
+                          currentTenantId === tenant.id
                             ? 'bg-primary text-primary-foreground'
                             : 'bg-muted text-muted-foreground'
                         }`}
@@ -139,14 +150,14 @@ export default function TenantSelectorSection() {
                         )}
                       </div>
                     </div>
-                    {tenantId === tenant.id && (
+                    {currentTenantId === tenant.id && (
                       <div className="p-1 rounded-full bg-primary">
                         <Check className="w-4 h-4 text-primary-foreground" />
                       </div>
                     )}
                   </div>
                 </CardHeader>
-                {tenantId === tenant.id && (
+                {currentTenantId === tenant.id && (
                   <CardContent className="pt-0">
                     <div className="px-3 py-1.5 rounded-md bg-primary/10 text-primary text-sm font-medium inline-block">
                       Selecionada
