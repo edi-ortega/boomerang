@@ -280,29 +280,26 @@ export default function PermissionsManagementSection() {
                             <ChevronRight className="w-4 h-4" />
                           </Button>
                         </div>
-                        {perms.map((perm, index) => {
-                          const globalIndex = availablePerms.findIndex(p => p.code === perm.code);
-                          return (
-                            <Draggable key={perm.code} draggableId={perm.code} index={globalIndex}>
-                              {(provided, snapshot) => (
-                                <div
-                                  ref={provided.innerRef}
-                                  {...provided.draggableProps}
-                                  {...provided.dragHandleProps}
-                                  className={`p-3 rounded-lg bg-card border border-border cursor-grab active:cursor-grabbing hover:shadow-md hover:border-primary/50 transition-all ${
-                                    snapshot.isDragging ? 'shadow-2xl scale-105 border-primary bg-primary/5 rotate-1' : ''
-                                  }`}
-                                  style={{
-                                    ...provided.draggableProps.style,
-                                    transition: snapshot.isDragging ? 'none' : 'all 0.2s ease'
-                                  }}
-                                >
-                                  <p className="text-sm font-medium text-foreground">{perm.name}</p>
-                                </div>
-                              )}
-                            </Draggable>
-                          );
-                        })}
+                        {perms.map((perm) => (
+                          <Draggable key={perm.code} draggableId={perm.code} index={0}>
+                            {(provided, snapshot) => (
+                              <div
+                                ref={provided.innerRef}
+                                {...provided.draggableProps}
+                                {...provided.dragHandleProps}
+                                className={`p-3 rounded-lg bg-card border border-border cursor-grab active:cursor-grabbing hover:shadow-md hover:border-primary/50 transition-all ${
+                                  snapshot.isDragging ? 'shadow-2xl scale-105 border-primary bg-primary/5 rotate-1' : ''
+                                }`}
+                                style={{
+                                  ...provided.draggableProps.style,
+                                  transition: snapshot.isDragging ? 'none' : 'all 0.2s ease'
+                                }}
+                              >
+                                <p className="text-sm font-medium text-foreground">{perm.name}</p>
+                              </div>
+                            )}
+                          </Draggable>
+                        ))}
                       </div>
                     ))}
                     {availablePerms.length === 0 && (
@@ -357,29 +354,26 @@ export default function PermissionsManagementSection() {
                             {category} ({perms.length})
                           </div>
                         </div>
-                        {perms.map((perm, index) => {
-                          const globalIndex = assignedPerms.findIndex(p => p.code === perm.code);
-                          return (
-                            <Draggable key={perm.code} draggableId={perm.code} index={globalIndex}>
-                              {(provided, snapshot) => (
-                                <div
-                                  ref={provided.innerRef}
-                                  {...provided.draggableProps}
-                                  {...provided.dragHandleProps}
-                                  className={`p-3 rounded-lg bg-card border border-green-500/30 cursor-grab active:cursor-grabbing hover:shadow-md hover:border-green-500 transition-all ${
-                                    snapshot.isDragging ? 'shadow-2xl scale-105 border-green-500 bg-green-500/5 rotate-1' : ''
-                                  }`}
-                                  style={{
-                                    ...provided.draggableProps.style,
-                                    transition: snapshot.isDragging ? 'none' : 'all 0.2s ease'
-                                  }}
-                                >
-                                  <p className="text-sm font-medium text-foreground">{perm.name}</p>
-                                </div>
-                              )}
-                            </Draggable>
-                          );
-                        })}
+                        {perms.map((perm) => (
+                          <Draggable key={perm.code} draggableId={perm.code} index={0}>
+                            {(provided, snapshot) => (
+                              <div
+                                ref={provided.innerRef}
+                                {...provided.draggableProps}
+                                {...provided.dragHandleProps}
+                                className={`p-3 rounded-lg bg-card border border-green-500/30 cursor-grab active:cursor-grabbing hover:shadow-md hover:border-green-500 transition-all ${
+                                  snapshot.isDragging ? 'shadow-2xl scale-105 border-green-500 bg-green-500/5 rotate-1' : ''
+                                }`}
+                                style={{
+                                  ...provided.draggableProps.style,
+                                  transition: snapshot.isDragging ? 'none' : 'all 0.2s ease'
+                                }}
+                              >
+                                <p className="text-sm font-medium text-foreground">{perm.name}</p>
+                              </div>
+                            )}
+                          </Draggable>
+                        ))}
                       </div>
                     ))}
                     {assignedPerms.length === 0 && (
