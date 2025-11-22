@@ -3,7 +3,7 @@ import { bmr } from "@/api/boomerangClient";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Shield, Users, Check, Sparkles, Zap, Crown, UserCircle, AlertCircle } from "lucide-react";
+import { Shield, Users, Check, Sparkles, Zap, Crown, UserCircle, AlertCircle, ChevronRight, ChevronLeft } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useToast } from "@/components/ui/use-toast";
 import { useTenantId } from "@/contexts/TenantContext";
@@ -109,35 +109,40 @@ export default function PermissionsManagementSection() {
   };
 
   const handleDragEnd = (result: any) => {
-    const { source, destination } = result;
+    const { source, destination, draggableId } = result;
 
     if (!destination) return;
 
     if (source.droppableId === destination.droppableId) {
-      const items = source.droppableId === 'available' ? [...availablePerms] : [...assignedPerms];
-      const [reorderedItem] = items.splice(source.index, 1);
-      items.splice(destination.index, 0, reorderedItem);
-
-      if (source.droppableId === 'available') {
-        setAvailablePerms(items);
-      } else {
-        setAssignedPerms(items);
-      }
-    } else {
-      const sourceItems = source.droppableId === 'available' ? [...availablePerms] : [...assignedPerms];
-      const destItems = destination.droppableId === 'available' ? [...availablePerms] : [...assignedPerms];
-
-      const [movedItem] = sourceItems.splice(source.index, 1);
-      destItems.splice(destination.index, 0, movedItem);
-
-      if (source.droppableId === 'available') {
-        setAvailablePerms(sourceItems);
-        setAssignedPerms(destItems);
-      } else {
-        setAssignedPerms(sourceItems);
-        setAvailablePerms(destItems);
-      }
+      return;
     }
+
+    const draggedPerm = AVAILABLE_PERMISSIONS.find(p => p.code === draggableId);
+    if (!draggedPerm) return;
+
+    if (source.droppableId === 'available' && destination.droppableId === 'assigned') {
+      setAvailablePerms(prev => prev.filter(p => p.code !== draggableId));
+      setAssignedPerms(prev => [...prev, draggedPerm]);
+    } else if (source.droppableId === 'assigned' && destination.droppableId === 'available') {
+      setAssignedPerms(prev => prev.filter(p => p.code !== draggableId));
+      setAvailablePerms(prev => [...prev, draggedPerm]);
+    }
+  };
+
+  const handleAssignCategory = (category: string) => {
+    const categoryPerms = availablePerms.filter(p => p.category === category);
+    if (categoryPerms.length === 0) return;
+
+    setAvailablePerms(prev => prev.filter(p => p.category !== category));
+    setAssignedPerms(prev => [...prev, ...categoryPerms]);
+  };
+
+  const handleRemoveCategory = (category: string) => {
+    const categoryPerms = assignedPerms.filter(p => p.category === category);
+    if (categoryPerms.length === 0) return;
+
+    setAssignedPerms(prev => prev.filter(p => p.category !== category));
+    setAvailablePerms(prev => [...prev, ...categoryPerms]);
   };
 
   const handleSave = async () => {
@@ -258,30 +263,42 @@ export default function PermissionsManagementSection() {
                     </div>
                   </div>
 
-                  <div className="p-4 space-y-3">
+                  <div className="p-4 space-y-4">
                     {Object.entries(availableGrouped).map(([category, perms]) => (
                       <div key={category} className="space-y-2">
-                        <div className={`p-2 rounded-lg bg-gradient-to-r ${CATEGORY_COLORS[category]} border text-xs font-semibold text-foreground`}>
-                          {category}
+                        <div className="flex items-center justify-between gap-2">
+                          <div className={`flex-1 p-2 rounded-lg bg-gradient-to-r ${CATEGORY_COLORS[category]} border text-xs font-semibold text-foreground`}>
+                            {category} ({perms.length})
+                          </div>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => handleAssignCategory(category)}
+                            className="h-8 px-2 hover:bg-green-500/20 hover:text-green-700"
+                            title="Atribuir todas"
+                          >
+                            <ChevronRight className="w-4 h-4" />
+                          </Button>
                         </div>
                         {perms.map((perm, index) => {
                           const globalIndex = availablePerms.findIndex(p => p.code === perm.code);
                           return (
                             <Draggable key={perm.code} draggableId={perm.code} index={globalIndex}>
                               {(provided, snapshot) => (
-                                <motion.div
+                                <div
                                   ref={provided.innerRef}
                                   {...provided.draggableProps}
                                   {...provided.dragHandleProps}
-                                  initial={{ opacity: 0, x: -20 }}
-                                  animate={{ opacity: 1, x: 0 }}
-                                  transition={{ delay: index * 0.05 }}
-                                  className={`p-3 rounded-lg bg-card border border-border cursor-move hover:shadow-lg hover:border-primary/50 transition-all ${
-                                    snapshot.isDragging ? 'shadow-2xl rotate-2 scale-105 border-primary' : ''
+                                  className={`p-3 rounded-lg bg-card border border-border cursor-grab active:cursor-grabbing hover:shadow-md hover:border-primary/50 transition-all ${
+                                    snapshot.isDragging ? 'shadow-2xl scale-105 border-primary bg-primary/5 rotate-1' : ''
                                   }`}
+                                  style={{
+                                    ...provided.draggableProps.style,
+                                    transition: snapshot.isDragging ? 'none' : 'all 0.2s ease'
+                                  }}
                                 >
                                   <p className="text-sm font-medium text-foreground">{perm.name}</p>
-                                </motion.div>
+                                </div>
                               )}
                             </Draggable>
                           );
@@ -323,30 +340,42 @@ export default function PermissionsManagementSection() {
                     </div>
                   </div>
 
-                  <div className="p-4 space-y-3">
+                  <div className="p-4 space-y-4">
                     {Object.entries(assignedGrouped).map(([category, perms]) => (
                       <div key={category} className="space-y-2">
-                        <div className={`p-2 rounded-lg bg-gradient-to-r ${CATEGORY_COLORS[category]} border text-xs font-semibold text-foreground`}>
-                          {category}
+                        <div className="flex items-center justify-between gap-2">
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => handleRemoveCategory(category)}
+                            className="h-8 px-2 hover:bg-red-500/20 hover:text-red-700"
+                            title="Remover todas"
+                          >
+                            <ChevronLeft className="w-4 h-4" />
+                          </Button>
+                          <div className={`flex-1 p-2 rounded-lg bg-gradient-to-r ${CATEGORY_COLORS[category]} border text-xs font-semibold text-foreground`}>
+                            {category} ({perms.length})
+                          </div>
                         </div>
                         {perms.map((perm, index) => {
                           const globalIndex = assignedPerms.findIndex(p => p.code === perm.code);
                           return (
                             <Draggable key={perm.code} draggableId={perm.code} index={globalIndex}>
                               {(provided, snapshot) => (
-                                <motion.div
+                                <div
                                   ref={provided.innerRef}
                                   {...provided.draggableProps}
                                   {...provided.dragHandleProps}
-                                  initial={{ opacity: 0, x: 20 }}
-                                  animate={{ opacity: 1, x: 0 }}
-                                  transition={{ delay: index * 0.05 }}
-                                  className={`p-3 rounded-lg bg-card border border-green-500/30 cursor-move hover:shadow-lg hover:border-green-500 transition-all ${
-                                    snapshot.isDragging ? 'shadow-2xl rotate-2 scale-105 border-green-500' : ''
+                                  className={`p-3 rounded-lg bg-card border border-green-500/30 cursor-grab active:cursor-grabbing hover:shadow-md hover:border-green-500 transition-all ${
+                                    snapshot.isDragging ? 'shadow-2xl scale-105 border-green-500 bg-green-500/5 rotate-1' : ''
                                   }`}
+                                  style={{
+                                    ...provided.draggableProps.style,
+                                    transition: snapshot.isDragging ? 'none' : 'all 0.2s ease'
+                                  }}
                                 >
                                   <p className="text-sm font-medium text-foreground">{perm.name}</p>
-                                </motion.div>
+                                </div>
                               )}
                             </Draggable>
                           );
