@@ -287,13 +287,10 @@ export default function PermissionsManagementSection() {
                                 ref={provided.innerRef}
                                 {...provided.draggableProps}
                                 {...provided.dragHandleProps}
-                                className={`p-3 rounded-lg bg-card border border-border cursor-grab active:cursor-grabbing hover:shadow-md hover:border-primary/50 transition-all ${
-                                  snapshot.isDragging ? 'shadow-2xl scale-105 border-primary bg-primary/5 rotate-1' : ''
+                                className={`p-3 rounded-lg bg-card border border-border cursor-grab active:cursor-grabbing hover:shadow-md hover:border-primary/50 ${
+                                  snapshot.isDragging ? 'shadow-2xl border-primary bg-primary/5' : ''
                                 }`}
-                                style={{
-                                  ...provided.draggableProps.style,
-                                  transition: snapshot.isDragging ? 'none' : 'all 0.2s ease'
-                                }}
+                                style={provided.draggableProps.style}
                               >
                                 <p className="text-sm font-medium text-foreground">{perm.name}</p>
                               </div>
@@ -361,13 +358,10 @@ export default function PermissionsManagementSection() {
                                 ref={provided.innerRef}
                                 {...provided.draggableProps}
                                 {...provided.dragHandleProps}
-                                className={`p-3 rounded-lg bg-card border border-green-500/30 cursor-grab active:cursor-grabbing hover:shadow-md hover:border-green-500 transition-all ${
-                                  snapshot.isDragging ? 'shadow-2xl scale-105 border-green-500 bg-green-500/5 rotate-1' : ''
+                                className={`p-3 rounded-lg bg-card border border-green-500/30 cursor-grab active:cursor-grabbing hover:shadow-md hover:border-green-500 ${
+                                  snapshot.isDragging ? 'shadow-2xl border-green-500 bg-green-500/5' : ''
                                 }`}
-                                style={{
-                                  ...provided.draggableProps.style,
-                                  transition: snapshot.isDragging ? 'none' : 'all 0.2s ease'
-                                }}
+                                style={provided.draggableProps.style}
                               >
                                 <p className="text-sm font-medium text-foreground">{perm.name}</p>
                               </div>
