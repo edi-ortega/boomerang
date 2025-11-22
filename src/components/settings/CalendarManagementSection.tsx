@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Edit, Trash2, Calendar as CalendarIcon } from "lucide-react";
+import { Plus, Edit, Trash2, Calendar as CalendarIcon, Download, MapPin } from "lucide-react";
 import { motion } from "framer-motion";
 import { useToast } from "@/components/ui/use-toast";
 import { useConfirm } from "@/hooks/use-confirm";
@@ -19,6 +19,8 @@ export default function CalendarManagementSection() {
   const [isLoading, setIsLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingHoliday, setEditingHoliday] = useState<any | null>(null);
+  const [isImporting, setIsImporting] = useState(false);
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [formData, setFormData] = useState({
     name: "",
     date: "",
@@ -142,6 +144,71 @@ export default function CalendarManagementSection() {
     setShowForm(false);
   };
 
+  const handleImportBrazilHolidays = async () => {
+    const confirmed = await confirm({
+      title: "Importar Feriados do Brasil",
+      description: `Deseja importar os feriados nacionais do Brasil para o ano ${selectedYear}? Os feriados já existentes não serão duplicados.`
+    });
+
+    if (!confirmed) return;
+
+    setIsImporting(true);
+
+    try {
+      const response = await fetch(`https://brasilapi.com.br/api/feriados/v1/${selectedYear}`);
+
+      if (!response.ok) {
+        throw new Error('Erro ao buscar feriados');
+      }
+
+      const brazilHolidays = await response.json();
+
+      let imported = 0;
+      let skipped = 0;
+
+      for (const holiday of brazilHolidays) {
+        const existingHoliday = holidays.find(
+          h => h.date === holiday.date && h.name.toLowerCase() === holiday.name.toLowerCase()
+        );
+
+        if (existingHoliday) {
+          skipped++;
+          continue;
+        }
+
+        try {
+          await bmr.entities.Holiday.create({
+            name: holiday.name,
+            date: holiday.date,
+            description: holiday.type === 'national' ? 'Feriado Nacional do Brasil' : '',
+            type: 'national',
+            is_recurring: true,
+            client_id: tenantId
+          });
+          imported++;
+        } catch (error) {
+          console.error(`Error importing holiday ${holiday.name}:`, error);
+        }
+      }
+
+      toast({
+        title: "Importação concluída!",
+        description: `${imported} feriados importados, ${skipped} já existiam.`,
+      });
+
+      await loadHolidays();
+    } catch (error) {
+      console.error("Error importing holidays:", error);
+      toast({
+        title: "Erro ao importar",
+        description: "Não foi possível importar os feriados. Tente novamente.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsImporting(false);
+    }
+  };
+
   const getTypeColor = (type: string) => {
     const colors: Record<string, string> = {
       national: "bg-blue-500",
@@ -161,10 +228,49 @@ export default function CalendarManagementSection() {
               <CalendarIcon className="w-5 h-5" />
               Calendário de Feriados
             </CardTitle>
-            <Button onClick={() => setShowForm(!showForm)}>
-              <Plus className="w-4 h-4 mr-2" />
-              Novo Feriado
-            </Button>
+            <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 px-3 py-1.5 bg-accent/50 rounded-lg border border-border">
+                <MapPin className="w-4 h-4 text-muted-foreground" />
+                <Select value={selectedYear.toString()} onValueChange={(v) => setSelectedYear(parseInt(v))}>
+                  <SelectTrigger className="w-28 h-8 border-0 bg-transparent">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {[...Array(5)].map((_, i) => {
+                      const year = new Date().getFullYear() + i;
+                      return (
+                        <SelectItem key={year} value={year.toString()}>
+                          {year}
+                        </SelectItem>
+                      );
+                    })}
+                  </SelectContent>
+                </Select>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={handleImportBrazilHolidays}
+                  disabled={isImporting}
+                  className="h-8 text-xs"
+                >
+                  {isImporting ? (
+                    <>
+                      <div className="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin mr-2" />
+                      Importando...
+                    </>
+                  ) : (
+                    <>
+                      <Download className="w-3 h-3 mr-1" />
+                      Importar do Brasil
+                    </>
+                  )}
+                </Button>
+              </div>
+              <Button onClick={() => setShowForm(!showForm)}>
+                <Plus className="w-4 h-4 mr-2" />
+                Novo Feriado
+              </Button>
+            </div>
           </div>
         </CardHeader>
 
